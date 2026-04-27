@@ -29,6 +29,13 @@ export function AppHeader() {
             <span className="hidden sm:inline">Random</span>
           </Link>
           <Link
+            to="/api-docs"
+            className="rounded-md px-2 py-1.5 hover:bg-accent"
+            activeProps={{ className: "rounded-md px-2 py-1.5 bg-accent font-medium" }}
+          >
+            API
+          </Link>
+          <Link
             to="/words/new"
             className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/90"
           >
