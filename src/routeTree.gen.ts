@@ -9,38 +9,139 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RandomRouteImport } from './routes/random'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WordsNewRouteImport } from './routes/words.new'
+import { Route as WordsIdRouteImport } from './routes/words.$id'
+import { Route as WordsIdEditRouteImport } from './routes/words.$id.edit'
+import { Route as ApiPublicVocabIndexRouteImport } from './routes/api.public.vocab.index'
+import { Route as ApiPublicVocabRandomRouteImport } from './routes/api.public.vocab.random'
+import { Route as ApiPublicVocabIdRouteImport } from './routes/api.public.vocab.$id'
 
+const RandomRoute = RandomRouteImport.update({
+  id: '/random',
+  path: '/random',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WordsNewRoute = WordsNewRouteImport.update({
+  id: '/words/new',
+  path: '/words/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WordsIdRoute = WordsIdRouteImport.update({
+  id: '/words/$id',
+  path: '/words/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WordsIdEditRoute = WordsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => WordsIdRoute,
+} as any)
+const ApiPublicVocabIndexRoute = ApiPublicVocabIndexRouteImport.update({
+  id: '/api/public/vocab/',
+  path: '/api/public/vocab/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVocabRandomRoute = ApiPublicVocabRandomRouteImport.update({
+  id: '/api/public/vocab/random',
+  path: '/api/public/vocab/random',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
+  id: '/api/public/vocab/$id',
+  path: '/api/public/vocab/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab/': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab/': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab'
+  id:
+    | '__root__'
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RandomRoute: typeof RandomRoute
+  WordsIdRoute: typeof WordsIdRouteWithChildren
+  WordsNewRoute: typeof WordsNewRoute
+  ApiPublicVocabIdRoute: typeof ApiPublicVocabIdRoute
+  ApiPublicVocabRandomRoute: typeof ApiPublicVocabRandomRoute
+  ApiPublicVocabIndexRoute: typeof ApiPublicVocabIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/random': {
+      id: '/random'
+      path: '/random'
+      fullPath: '/random'
+      preLoaderRoute: typeof RandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +149,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/words/new': {
+      id: '/words/new'
+      path: '/words/new'
+      fullPath: '/words/new'
+      preLoaderRoute: typeof WordsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/words/$id': {
+      id: '/words/$id'
+      path: '/words/$id'
+      fullPath: '/words/$id'
+      preLoaderRoute: typeof WordsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/words/$id/edit': {
+      id: '/words/$id/edit'
+      path: '/edit'
+      fullPath: '/words/$id/edit'
+      preLoaderRoute: typeof WordsIdEditRouteImport
+      parentRoute: typeof WordsIdRoute
+    }
+    '/api/public/vocab/': {
+      id: '/api/public/vocab/'
+      path: '/api/public/vocab'
+      fullPath: '/api/public/vocab/'
+      preLoaderRoute: typeof ApiPublicVocabIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vocab/random': {
+      id: '/api/public/vocab/random'
+      path: '/api/public/vocab/random'
+      fullPath: '/api/public/vocab/random'
+      preLoaderRoute: typeof ApiPublicVocabRandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vocab/$id': {
+      id: '/api/public/vocab/$id'
+      path: '/api/public/vocab/$id'
+      fullPath: '/api/public/vocab/$id'
+      preLoaderRoute: typeof ApiPublicVocabIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface WordsIdRouteChildren {
+  WordsIdEditRoute: typeof WordsIdEditRoute
+}
+
+const WordsIdRouteChildren: WordsIdRouteChildren = {
+  WordsIdEditRoute: WordsIdEditRoute,
+}
+
+const WordsIdRouteWithChildren =
+  WordsIdRoute._addFileChildren(WordsIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RandomRoute: RandomRoute,
+  WordsIdRoute: WordsIdRouteWithChildren,
+  WordsNewRoute: WordsNewRoute,
+  ApiPublicVocabIdRoute: ApiPublicVocabIdRoute,
+  ApiPublicVocabRandomRoute: ApiPublicVocabRandomRoute,
+  ApiPublicVocabIndexRoute: ApiPublicVocabIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
