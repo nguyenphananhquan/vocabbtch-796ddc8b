@@ -30,6 +30,9 @@ function IndexPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState<string>("all");
+  const [sortMode, setSortMode] = useState<
+    "newest" | "oldest" | "node_asc" | "node_desc" | "word_asc" | "word_desc"
+  >("newest");
 
   async function load() {
     try {
@@ -55,18 +58,41 @@ function IndexPage() {
     }
   }
 
-  const filtered = (words ?? []).filter((w) => {
-    if (classFilter !== "all" && w.word_class !== classFilter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        w.word.toLowerCase().includes(q) ||
-        w.node.toLowerCase().includes(q) ||
-        (w.example ?? "").toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const filtered = (words ?? [])
+    .filter((w) => {
+      if (classFilter !== "all" && w.word_class !== classFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          w.word.toLowerCase().includes(q) ||
+          w.node.toLowerCase().includes(q) ||
+          (w.example ?? "").toLowerCase().includes(q)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortMode) {
+        case "newest":
+          return (
+            new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.date_added).getTime() - new Date(b.date_added).getTime()
+          );
+        case "node_asc":
+          return a.node.localeCompare(b.node);
+        case "node_desc":
+          return b.node.localeCompare(a.node);
+        case "word_asc":
+          return a.word.localeCompare(b.word);
+        case "word_desc":
+          return b.word.localeCompare(a.word);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,6 +116,19 @@ function IndexPage() {
                   {c}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortMode} onValueChange={(v) => setSortMode(v as typeof sortMode)}>
+            <SelectTrigger className="sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="node_asc">Node A → Z</SelectItem>
+              <SelectItem value="node_desc">Node Z → A</SelectItem>
+              <SelectItem value="word_asc">Word A → Z</SelectItem>
+              <SelectItem value="word_desc">Word Z → A</SelectItem>
             </SelectContent>
           </Select>
         </div>

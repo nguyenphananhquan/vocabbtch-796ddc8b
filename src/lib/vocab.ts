@@ -60,6 +60,17 @@ export async function deleteWord(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function listNodes(): Promise<string[]> {
+  const { data, error } = await supabase.from("vocabulary").select("node");
+  if (error) throw error;
+  const set = new Set<string>();
+  for (const r of data ?? []) {
+    const v = (r as { node: string | null }).node?.trim();
+    if (v) set.add(v);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+
 export async function getRandomWord(): Promise<Word | null> {
   // Fetch all ids then pick one client-side (simple, fine for personal vocab size).
   const { data, error } = await supabase.from("vocabulary").select("id");

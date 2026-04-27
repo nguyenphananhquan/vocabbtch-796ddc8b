@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { createWord, updateWord, WORD_CLASSES, type Word } from "@/lib/vocab";
+import { createWord, updateWord, listNodes, WORD_CLASSES, type Word } from "@/lib/vocab";
 
 interface Props {
   initial?: Word;
@@ -27,6 +27,30 @@ export function WordForm({ initial }: Props) {
   const [example, setExample] = useState(initial?.example ?? "");
   const [sourceNote, setSourceNote] = useState(initial?.source_note ?? "");
   const [saving, setSaving] = useState(false);
+  const [existingNodes, setExistingNodes] = useState<string[]>([]);
+  const [nodeFocused, setNodeFocused] = useState(false);
+  const nodeWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    listNodes().then(setExistingNodes).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (nodeWrapRef.current && !nodeWrapRef.current.contains(e.target as Node)) {
+        setNodeFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  const nodeSuggestions = useMemo(() => {
+    const q = node.trim().toLowerCase();
+    const pool = existingNodes.filter((n) => n.toLowerCase() !== q);
+    if (!q) return pool.slice(0, 8);
+    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 8);
+  }, [node, existingNodes]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -103,14 +127,37 @@ export function WordForm({ initial }: Props) {
 
       <div className="space-y-2">
         <Label htmlFor="node">Node *</Label>
-        <Textarea
-          id="node"
-          value={node}
-          onChange={(e) => setNode(e.target.value)}
-          placeholder="The node…"
-          rows={3}
-          required
-        />
+        <div ref={nodeWrapRef} className="relative">
+          <Textarea
+            id="node"
+            value={node}
+            onChange={(e) => setNode(e.target.value)}
+            onFocus={() => setNodeFocused(true)}
+            placeholder="The node…"
+            rows={3}
+            required
+          />
+          {nodeFocused && nodeSuggestions.length > 0 && (
+            <div className="absolute z-10 mt-1 w-full max-h-56 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+              {nodeSuggestions.map((n) => (
+                <button
+                  type="button"
+                  key={n}
+                  className="block w-full truncate px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setNode(n);
+                    setNodeFocused(false);
+                  }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Tip: pick an existing node when possible to keep groups tight.
+        </p>
       </div>
 
       <div className="space-y-2">
