@@ -68,6 +68,15 @@ function WordDetailPage() {
               </p>
             </header>
 
+            {word.meaning && (
+              <section>
+                <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                  Meaning
+                </h2>
+                <p className="mt-1 whitespace-pre-wrap">{word.meaning}</p>
+              </section>
+            )}
+
             <section>
               <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                 Node
