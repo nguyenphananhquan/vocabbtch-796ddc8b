@@ -118,6 +118,19 @@ function IndexPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={sortMode} onValueChange={(v) => setSortMode(v as typeof sortMode)}>
+            <SelectTrigger className="sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest first</SelectItem>
+              <SelectItem value="oldest">Oldest first</SelectItem>
+              <SelectItem value="node_asc">Node A → Z</SelectItem>
+              <SelectItem value="node_desc">Node Z → A</SelectItem>
+              <SelectItem value="word_asc">Word A → Z</SelectItem>
+              <SelectItem value="word_desc">Word Z → A</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {error && (
