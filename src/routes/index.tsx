@@ -58,18 +58,41 @@ function IndexPage() {
     }
   }
 
-  const filtered = (words ?? []).filter((w) => {
-    if (classFilter !== "all" && w.word_class !== classFilter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        w.word.toLowerCase().includes(q) ||
-        w.node.toLowerCase().includes(q) ||
-        (w.example ?? "").toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const filtered = (words ?? [])
+    .filter((w) => {
+      if (classFilter !== "all" && w.word_class !== classFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          w.word.toLowerCase().includes(q) ||
+          w.node.toLowerCase().includes(q) ||
+          (w.example ?? "").toLowerCase().includes(q)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortMode) {
+        case "newest":
+          return (
+            new Date(b.date_added).getTime() - new Date(a.date_added).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.date_added).getTime() - new Date(b.date_added).getTime()
+          );
+        case "node_asc":
+          return a.node.localeCompare(b.node);
+        case "node_desc":
+          return b.node.localeCompare(a.node);
+        case "word_asc":
+          return a.word.localeCompare(b.word);
+        case "word_desc":
+          return b.word.localeCompare(a.word);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="min-h-screen bg-background">
