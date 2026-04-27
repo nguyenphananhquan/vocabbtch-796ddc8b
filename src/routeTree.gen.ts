@@ -14,6 +14,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as WordsNewRouteImport } from './routes/words.new'
 import { Route as WordsIdRouteImport } from './routes/words.$id'
 import { Route as WordsIdEditRouteImport } from './routes/words.$id.edit'
+import { Route as ApiPublicVocabIndexRouteImport } from './routes/api.public.vocab.index'
+import { Route as ApiPublicVocabRandomRouteImport } from './routes/api.public.vocab.random'
+import { Route as ApiPublicVocabIdRouteImport } from './routes/api.public.vocab.$id'
 
 const RandomRoute = RandomRouteImport.update({
   id: '/random',
@@ -40,6 +43,21 @@ const WordsIdEditRoute = WordsIdEditRouteImport.update({
   path: '/edit',
   getParentRoute: () => WordsIdRoute,
 } as any)
+const ApiPublicVocabIndexRoute = ApiPublicVocabIndexRouteImport.update({
+  id: '/api/public/vocab/',
+  path: '/api/public/vocab/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVocabRandomRoute = ApiPublicVocabRandomRouteImport.update({
+  id: '/api/public/vocab/random',
+  path: '/api/public/vocab/random',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
+  id: '/api/public/vocab/$id',
+  path: '/api/public/vocab/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +65,9 @@ export interface FileRoutesByFullPath {
   '/words/$id': typeof WordsIdRouteWithChildren
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab/': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +75,9 @@ export interface FileRoutesByTo {
   '/words/$id': typeof WordsIdRouteWithChildren
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +86,31 @@ export interface FileRoutesById {
   '/words/$id': typeof WordsIdRouteWithChildren
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
+  '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
+  '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
+  '/api/public/vocab/': typeof ApiPublicVocabIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/random' | '/words/$id' | '/words/new' | '/words/$id/edit'
+  fullPaths:
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/random' | '/words/$id' | '/words/new' | '/words/$id/edit'
+  to:
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab'
   id:
     | '__root__'
     | '/'
@@ -75,6 +118,9 @@ export interface FileRouteTypes {
     | '/words/$id'
     | '/words/new'
     | '/words/$id/edit'
+    | '/api/public/vocab/$id'
+    | '/api/public/vocab/random'
+    | '/api/public/vocab/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -82,6 +128,9 @@ export interface RootRouteChildren {
   RandomRoute: typeof RandomRoute
   WordsIdRoute: typeof WordsIdRouteWithChildren
   WordsNewRoute: typeof WordsNewRoute
+  ApiPublicVocabIdRoute: typeof ApiPublicVocabIdRoute
+  ApiPublicVocabRandomRoute: typeof ApiPublicVocabRandomRoute
+  ApiPublicVocabIndexRoute: typeof ApiPublicVocabIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -121,6 +170,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WordsIdEditRouteImport
       parentRoute: typeof WordsIdRoute
     }
+    '/api/public/vocab/': {
+      id: '/api/public/vocab/'
+      path: '/api/public/vocab'
+      fullPath: '/api/public/vocab/'
+      preLoaderRoute: typeof ApiPublicVocabIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vocab/random': {
+      id: '/api/public/vocab/random'
+      path: '/api/public/vocab/random'
+      fullPath: '/api/public/vocab/random'
+      preLoaderRoute: typeof ApiPublicVocabRandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/vocab/$id': {
+      id: '/api/public/vocab/$id'
+      path: '/api/public/vocab/$id'
+      fullPath: '/api/public/vocab/$id'
+      preLoaderRoute: typeof ApiPublicVocabIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -140,7 +210,19 @@ const rootRouteChildren: RootRouteChildren = {
   RandomRoute: RandomRoute,
   WordsIdRoute: WordsIdRouteWithChildren,
   WordsNewRoute: WordsNewRoute,
+  ApiPublicVocabIdRoute: ApiPublicVocabIdRoute,
+  ApiPublicVocabRandomRoute: ApiPublicVocabRandomRoute,
+  ApiPublicVocabIndexRoute: ApiPublicVocabIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
