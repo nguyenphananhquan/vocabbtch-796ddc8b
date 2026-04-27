@@ -22,6 +22,7 @@ export function WordForm({ initial }: Props) {
   const navigate = useNavigate();
   const [word, setWord] = useState(initial?.word ?? "");
   const [wordClass, setWordClass] = useState<string>(initial?.word_class ?? "noun");
+  const [meaning, setMeaning] = useState(initial?.meaning ?? "");
   const [node, setNode] = useState(initial?.node ?? "");
   const [example, setExample] = useState(initial?.example ?? "");
   const [sourceNote, setSourceNote] = useState(initial?.source_note ?? "");
