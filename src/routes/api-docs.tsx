@@ -49,6 +49,73 @@ function Endpoint({
   );
 }
 
+function ApiTester() {
+  const [key, setKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<number | null>(null);
+  const [output, setOutput] = useState<string>("");
+
+  const run = async () => {
+    if (!key) return;
+    setLoading(true);
+    setOutput("");
+    setStatus(null);
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/vocab/`, {
+        headers: { Authorization: `Bearer ${key}` },
+      });
+      setStatus(res.status);
+      const text = await res.text();
+      try {
+        setOutput(JSON.stringify(JSON.parse(text), null, 2));
+      } catch {
+        setOutput(text);
+      }
+    } catch (e) {
+      setOutput(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="space-y-3 rounded-lg border bg-card p-4">
+      <h2 className="text-xl font-semibold">Try it</h2>
+      <p className="text-sm text-muted-foreground">
+        Paste your <code className="rounded bg-muted px-1">VOCAB_API_KEY</code> and send a real request to{" "}
+        <code className="rounded bg-muted px-1">GET /api/public/vocab/</code>. The key stays in this browser tab only.
+      </p>
+      <div className="flex gap-2">
+        <Input
+          type="password"
+          placeholder="VOCAB_API_KEY"
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+          autoComplete="off"
+        />
+        <Button onClick={run} disabled={loading || !key}>
+          {loading ? "Sending…" : "Test request"}
+        </Button>
+      </div>
+      {status !== null && (
+        <div className="text-sm">
+          Status:{" "}
+          <span
+            className={
+              status >= 200 && status < 300
+                ? "font-mono text-green-600 dark:text-green-400"
+                : "font-mono text-destructive"
+            }
+          >
+            {status}
+          </span>
+        </div>
+      )}
+      {output && <Code>{output}</Code>}
+    </section>
+  );
+}
+
 function ApiDocsPage() {
   return (
     <div className="min-h-screen bg-background">
