@@ -89,7 +89,9 @@ function WordDetailPage() {
                 <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                   Example
                 </h2>
-                <p className="mt-1 whitespace-pre-wrap italic">{word.example}</p>
+                <p className="mt-1 whitespace-pre-wrap italic">
+                  {highlightWord(word.example, word.word)}
+                </p>
               </section>
             )}
 
