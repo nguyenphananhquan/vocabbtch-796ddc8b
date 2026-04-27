@@ -9,38 +9,90 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RandomRouteImport } from './routes/random'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WordsNewRouteImport } from './routes/words.new'
+import { Route as WordsIdRouteImport } from './routes/words.$id'
+import { Route as WordsIdEditRouteImport } from './routes/words.$id.edit'
 
+const RandomRoute = RandomRouteImport.update({
+  id: '/random',
+  path: '/random',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WordsNewRoute = WordsNewRouteImport.update({
+  id: '/words/new',
+  path: '/words/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WordsIdRoute = WordsIdRouteImport.update({
+  id: '/words/$id',
+  path: '/words/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WordsIdEditRoute = WordsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => WordsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/random': typeof RandomRoute
+  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/new': typeof WordsNewRoute
+  '/words/$id/edit': typeof WordsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/random' | '/words/$id' | '/words/new' | '/words/$id/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/random' | '/words/$id' | '/words/new' | '/words/$id/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/random'
+    | '/words/$id'
+    | '/words/new'
+    | '/words/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RandomRoute: typeof RandomRoute
+  WordsIdRoute: typeof WordsIdRouteWithChildren
+  WordsNewRoute: typeof WordsNewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/random': {
+      id: '/random'
+      path: '/random'
+      fullPath: '/random'
+      preLoaderRoute: typeof RandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +100,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/words/new': {
+      id: '/words/new'
+      path: '/words/new'
+      fullPath: '/words/new'
+      preLoaderRoute: typeof WordsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/words/$id': {
+      id: '/words/$id'
+      path: '/words/$id'
+      fullPath: '/words/$id'
+      preLoaderRoute: typeof WordsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/words/$id/edit': {
+      id: '/words/$id/edit'
+      path: '/edit'
+      fullPath: '/words/$id/edit'
+      preLoaderRoute: typeof WordsIdEditRouteImport
+      parentRoute: typeof WordsIdRoute
+    }
   }
 }
 
+interface WordsIdRouteChildren {
+  WordsIdEditRoute: typeof WordsIdEditRoute
+}
+
+const WordsIdRouteChildren: WordsIdRouteChildren = {
+  WordsIdEditRoute: WordsIdEditRoute,
+}
+
+const WordsIdRouteWithChildren =
+  WordsIdRoute._addFileChildren(WordsIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RandomRoute: RandomRoute,
+  WordsIdRoute: WordsIdRouteWithChildren,
+  WordsNewRoute: WordsNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
