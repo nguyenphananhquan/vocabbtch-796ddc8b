@@ -22,6 +22,7 @@ export function WordForm({ initial }: Props) {
   const navigate = useNavigate();
   const [word, setWord] = useState(initial?.word ?? "");
   const [wordClass, setWordClass] = useState<string>(initial?.word_class ?? "noun");
+  const [meaning, setMeaning] = useState(initial?.meaning ?? "");
   const [node, setNode] = useState(initial?.node ?? "");
   const [example, setExample] = useState(initial?.example ?? "");
   const [sourceNote, setSourceNote] = useState(initial?.source_note ?? "");
@@ -38,6 +39,7 @@ export function WordForm({ initial }: Props) {
       const payload = {
         word: word.trim(),
         word_class: wordClass,
+        meaning: meaning.trim() || null,
         node: node.trim(),
         example: example.trim() || null,
         source_note: sourceNote.trim() || null,
@@ -89,12 +91,23 @@ export function WordForm({ initial }: Props) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="node">Node (meaning) *</Label>
+        <Label htmlFor="meaning">Meaning</Label>
+        <Textarea
+          id="meaning"
+          value={meaning}
+          onChange={(e) => setMeaning(e.target.value)}
+          placeholder="Short definition…"
+          rows={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="node">Node *</Label>
         <Textarea
           id="node"
           value={node}
           onChange={(e) => setNode(e.target.value)}
-          placeholder="What it means…"
+          placeholder="The node…"
           rows={3}
           required
         />
