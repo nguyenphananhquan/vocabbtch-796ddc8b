@@ -127,14 +127,37 @@ export function WordForm({ initial }: Props) {
 
       <div className="space-y-2">
         <Label htmlFor="node">Node *</Label>
-        <Textarea
-          id="node"
-          value={node}
-          onChange={(e) => setNode(e.target.value)}
-          placeholder="The node…"
-          rows={3}
-          required
-        />
+        <div ref={nodeWrapRef} className="relative">
+          <Textarea
+            id="node"
+            value={node}
+            onChange={(e) => setNode(e.target.value)}
+            onFocus={() => setNodeFocused(true)}
+            placeholder="The node…"
+            rows={3}
+            required
+          />
+          {nodeFocused && nodeSuggestions.length > 0 && (
+            <div className="absolute z-10 mt-1 w-full max-h-56 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+              {nodeSuggestions.map((n) => (
+                <button
+                  type="button"
+                  key={n}
+                  className="block w-full truncate px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setNode(n);
+                    setNodeFocused(false);
+                  }}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Tip: pick an existing node when possible to keep groups tight.
+        </p>
       </div>
 
       <div className="space-y-2">
