@@ -27,6 +27,30 @@ export function WordForm({ initial }: Props) {
   const [example, setExample] = useState(initial?.example ?? "");
   const [sourceNote, setSourceNote] = useState(initial?.source_note ?? "");
   const [saving, setSaving] = useState(false);
+  const [existingNodes, setExistingNodes] = useState<string[]>([]);
+  const [nodeFocused, setNodeFocused] = useState(false);
+  const nodeWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    listNodes().then(setExistingNodes).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (nodeWrapRef.current && !nodeWrapRef.current.contains(e.target as Node)) {
+        setNodeFocused(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  const nodeSuggestions = useMemo(() => {
+    const q = node.trim().toLowerCase();
+    const pool = existingNodes.filter((n) => n.toLowerCase() !== q);
+    if (!q) return pool.slice(0, 8);
+    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 8);
+  }, [node, existingNodes]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
