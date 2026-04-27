@@ -61,6 +61,15 @@ function ApiDocsPage() {
           </p>
         </div>
 
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <p className="font-medium">Heads up: opening the URL in a browser tab will return <code className="rounded bg-muted px-1">401 Unauthorized</code>.</p>
+          <p className="mt-1 text-muted-foreground">
+            Browsers can't attach an <code className="rounded bg-muted px-1">Authorization</code> header to address-bar navigation. Use the tester below, <code>curl</code>, or <code>fetch</code> with the bearer token. Also note the trailing slash on <code className="rounded bg-muted px-1">/api/public/vocab/</code> — routes are matched exactly.
+          </p>
+        </div>
+
+        <ApiTester />
+
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">Base URL</h2>
           <Code>{BASE_URL}</Code>
