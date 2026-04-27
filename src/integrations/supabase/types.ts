@@ -19,6 +19,7 @@ export type Database = {
           date_added: string
           example: string | null
           id: string
+          meaning: string | null
           node: string
           source_note: string | null
           word: string
@@ -28,6 +29,7 @@ export type Database = {
           date_added?: string
           example?: string | null
           id?: string
+          meaning?: string | null
           node: string
           source_note?: string | null
           word: string
@@ -37,6 +39,7 @@ export type Database = {
           date_added?: string
           example?: string | null
           id?: string
+          meaning?: string | null
           node?: string
           source_note?: string | null
           word?: string

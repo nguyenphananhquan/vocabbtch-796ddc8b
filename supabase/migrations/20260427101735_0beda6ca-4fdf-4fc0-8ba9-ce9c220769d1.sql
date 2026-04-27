@@ -1,0 +1,1 @@
+ALTER TABLE public.vocabulary ADD COLUMN meaning TEXT;
