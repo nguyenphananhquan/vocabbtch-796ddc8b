@@ -7,6 +7,26 @@ import { deleteWord, getWord, type Word } from "@/lib/vocab";
 import { toast } from "sonner";
 import { Pencil, Trash2, ArrowLeft } from "lucide-react";
 
+function escapeRegex(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightWord(text: string, word: string) {
+  if (!word) return text;
+  // Match the word and common inflections (plural / -ed / -ing / -s) as whole words, case-insensitive.
+  const re = new RegExp(`\\b(${escapeRegex(word)}\\w*)\\b`, "gi");
+  const parts = text.split(re);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <strong key={i} className="font-bold not-italic">
+        {part}
+      </strong>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  );
+}
+
 export const Route = createFileRoute("/words/$id")({
   head: () => ({ meta: [{ title: "Word" }] }),
   component: WordDetailPage,
@@ -89,7 +109,9 @@ function WordDetailPage() {
                 <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                   Example
                 </h2>
-                <p className="mt-1 whitespace-pre-wrap italic">{word.example}</p>
+                <p className="mt-1 whitespace-pre-wrap italic">
+                  {highlightWord(word.example, word.word)}
+                </p>
               </section>
             )}
 
