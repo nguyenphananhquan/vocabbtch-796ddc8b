@@ -39,6 +39,7 @@ export function WordForm({ initial }: Props) {
       const payload = {
         word: word.trim(),
         word_class: wordClass,
+        meaning: meaning.trim() || null,
         node: node.trim(),
         example: example.trim() || null,
         source_note: sourceNote.trim() || null,
