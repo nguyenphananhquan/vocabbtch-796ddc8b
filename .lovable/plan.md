@@ -1,49 +1,38 @@
-## Goals
+I found the likely root cause: the edit route is currently registered as a child of the word detail route, but the detail route does not render an outlet for child pages. So clicking Edit changes/targets `/words/:id/edit`, but the app keeps showing the detail page instead of the editable form.
 
-1. Add a sort mode on the list page (index) to sort vocabulary entries by **Node** (alphabetical), in addition to the current default (most recently added).
-2. In the Add/Edit form, help the user **reuse existing nodes** instead of typing a new one each time — by suggesting matching nodes already in the database as they type.
+Plan:
 
-## 1. Sort mode on the list page
+1. Fix the route structure
+   - Rename the edit route file from the nested route pattern to the non-nested TanStack Router pattern.
+   - Update the route declaration so `/words/:id/edit` renders as its own full page, not inside `/words/:id`.
 
-In `src/routes/index.tsx`, add a small `Select` next to the search/class filter:
+2. Keep the existing Edit links
+   - Keep the Edit buttons linking to `/words/$id/edit` from both the detail page and list page.
+   - After the route fix, these links should open the `WordForm` edit screen directly.
 
-- Options:
-  - **Newest first** (current default — by `date_added` desc)
-  - **Oldest first** (`date_added` asc)
-  - **Node A → Z**
-  - **Node Z → A**
-  - **Word A → Z**
-  - **Word Z → A**
+3. Verify the form remains editable
+   - Confirm `WordForm` still receives the loaded word as `initial` data.
+   - Ensure the input fields are controlled by state and update on typing.
+   - Ensure Save still calls `updateWord(...)` and returns to the detail page.
 
-The list is already loaded into state, so sorting is done client-side on the `filtered` array using `localeCompare` for text fields. No DB changes needed.
+4. Build-check the routing
+   - Run a build/type check after the rename so the generated TanStack route tree updates correctly.
 
-State: `const [sortMode, setSortMode] = useState<"newest" | "oldest" | "node_asc" | "node_desc" | "word_asc" | "word_desc">("newest")`.
+Technical detail:
 
-## 2. Node suggestions in the form (reuse existing nodes)
+```text
+Current route tree:
+/words/$id
+  /edit   <- child route, but /words/$id has no <Outlet />
 
-In `src/components/WordForm.tsx`, replace the plain `Textarea` for **Node** with an input that suggests existing nodes:
-
-- On mount, fetch the distinct list of nodes already in the database (a lightweight query — `select node from vocabulary`, then deduplicate client-side; vocab size is small/personal).
-- As the user types in the Node field, show a dropdown list of existing nodes whose text contains (case-insensitive) the current input. Limit to ~8 suggestions.
-- Clicking a suggestion fills the Node field with that exact value (so the same node string is reused — no duplicates from typos/casing).
-- The user can still freely type a brand-new node; suggestions are non-blocking hints.
-- Also display a tiny helper line: "Tip: pick an existing node when possible to keep groups tight."
-
-Implementation detail: build it as a small inline component using a `Textarea` + an absolutely-positioned suggestion list below it (shown only when focused and there are matches that are not exactly equal to the current value). No new dependency required — uses existing shadcn primitives.
-
-Add a helper in `src/lib/vocab.ts`:
-```ts
-export async function listNodes(): Promise<string[]> { ... }
+Target route tree:
+/words/$id
+/words/$id/edit  <- sibling/non-nested page, renders its own edit form
 ```
-returning the deduplicated, sorted list of non-empty `node` values.
 
-## Files touched
+I’ll apply this route fix once approved.
 
-- `src/routes/index.tsx` — add sort `Select` + sorting logic.
-- `src/lib/vocab.ts` — add `listNodes()` helper.
-- `src/components/WordForm.tsx` — replace Node textarea with a suggesting variant; fetch existing nodes on mount.
-
-## Out of scope (for later)
-
-- Renaming a node across all its words (bulk rename) — can be added later if you want to clean up node groups.
-- Grouping the list page by node — the new "Node A→Z" sort already gives you that effect visually.
+<lov-actions>
+  <lov-open-history>View History</lov-open-history>
+  <lov-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</lov-link>
+</lov-actions>

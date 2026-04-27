@@ -13,7 +13,7 @@ import { Route as RandomRouteImport } from './routes/random'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WordsNewRouteImport } from './routes/words.new'
 import { Route as WordsIdRouteImport } from './routes/words.$id'
-import { Route as WordsIdEditRouteImport } from './routes/words.$id.edit'
+import { Route as WordsIdEditRouteImport } from './routes/words_.$id.edit'
 import { Route as ApiPublicVocabIndexRouteImport } from './routes/api.public.vocab.index'
 import { Route as ApiPublicVocabRandomRouteImport } from './routes/api.public.vocab.random'
 import { Route as ApiPublicVocabIdRouteImport } from './routes/api.public.vocab.$id'
@@ -39,9 +39,9 @@ const WordsIdRoute = WordsIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const WordsIdEditRoute = WordsIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => WordsIdRoute,
+  id: '/words_/$id/edit',
+  path: '/words/$id/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicVocabIndexRoute = ApiPublicVocabIndexRouteImport.update({
   id: '/api/public/vocab/',
@@ -62,7 +62,7 @@ const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/random': typeof RandomRoute
-  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
   '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
@@ -72,7 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/random': typeof RandomRoute
-  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
   '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
@@ -83,9 +83,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/random': typeof RandomRoute
-  '/words/$id': typeof WordsIdRouteWithChildren
+  '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
-  '/words/$id/edit': typeof WordsIdEditRoute
+  '/words_/$id/edit': typeof WordsIdEditRoute
   '/api/public/vocab/$id': typeof ApiPublicVocabIdRoute
   '/api/public/vocab/random': typeof ApiPublicVocabRandomRoute
   '/api/public/vocab/': typeof ApiPublicVocabIndexRoute
@@ -117,7 +117,7 @@ export interface FileRouteTypes {
     | '/random'
     | '/words/$id'
     | '/words/new'
-    | '/words/$id/edit'
+    | '/words_/$id/edit'
     | '/api/public/vocab/$id'
     | '/api/public/vocab/random'
     | '/api/public/vocab/'
@@ -126,8 +126,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RandomRoute: typeof RandomRoute
-  WordsIdRoute: typeof WordsIdRouteWithChildren
+  WordsIdRoute: typeof WordsIdRoute
   WordsNewRoute: typeof WordsNewRoute
+  WordsIdEditRoute: typeof WordsIdEditRoute
   ApiPublicVocabIdRoute: typeof ApiPublicVocabIdRoute
   ApiPublicVocabRandomRoute: typeof ApiPublicVocabRandomRoute
   ApiPublicVocabIndexRoute: typeof ApiPublicVocabIndexRoute
@@ -163,12 +164,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WordsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/words/$id/edit': {
-      id: '/words/$id/edit'
-      path: '/edit'
+    '/words_/$id/edit': {
+      id: '/words_/$id/edit'
+      path: '/words/$id/edit'
       fullPath: '/words/$id/edit'
       preLoaderRoute: typeof WordsIdEditRouteImport
-      parentRoute: typeof WordsIdRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/vocab/': {
       id: '/api/public/vocab/'
@@ -194,22 +195,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface WordsIdRouteChildren {
-  WordsIdEditRoute: typeof WordsIdEditRoute
-}
-
-const WordsIdRouteChildren: WordsIdRouteChildren = {
-  WordsIdEditRoute: WordsIdEditRoute,
-}
-
-const WordsIdRouteWithChildren =
-  WordsIdRoute._addFileChildren(WordsIdRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RandomRoute: RandomRoute,
-  WordsIdRoute: WordsIdRouteWithChildren,
+  WordsIdRoute: WordsIdRoute,
   WordsNewRoute: WordsNewRoute,
+  WordsIdEditRoute: WordsIdEditRoute,
   ApiPublicVocabIdRoute: ApiPublicVocabIdRoute,
   ApiPublicVocabRandomRoute: ApiPublicVocabRandomRoute,
   ApiPublicVocabIndexRoute: ApiPublicVocabIndexRoute,

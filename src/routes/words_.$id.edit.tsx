@@ -4,7 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { WordForm } from "@/components/WordForm";
 import { getWord, type Word } from "@/lib/vocab";
 
-export const Route = createFileRoute("/words/$id/edit")({
+export const Route = createFileRoute("/words_/$id/edit")({
   head: () => ({ meta: [{ title: "Edit word" }] }),
   component: EditWordPage,
 });
