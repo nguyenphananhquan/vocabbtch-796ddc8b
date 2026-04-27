@@ -30,6 +30,9 @@ function IndexPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState<string>("all");
+  const [sortMode, setSortMode] = useState<
+    "newest" | "oldest" | "node_asc" | "node_desc" | "word_asc" | "word_desc"
+  >("newest");
 
   async function load() {
     try {
