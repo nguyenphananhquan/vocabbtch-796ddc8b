@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useCatCompanion } from "@/hooks/use-cat-companion";
 
 type CatState = "idle" | "walk-left" | "walk-right" | "sleep" | "jump" | "look-at-card";
@@ -52,7 +52,7 @@ const CAT_SLEEP: number[][] = [
 
 function CatSvg({ sleeping }: { sleeping: boolean }) {
   const grid = sleeping ? CAT_SLEEP : CAT_PIXELS;
-  const rects: JSX.Element[] = [];
+  const rects: React.ReactElement[] = [];
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const v = grid[y][x];
