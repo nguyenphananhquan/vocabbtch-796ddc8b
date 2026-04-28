@@ -164,11 +164,67 @@ function gridToSvg(grid: number[][], key: string) {
   return rects;
 }
 
-function CatSprite({ state, frame }: { state: CatState; frame: 0 | 1 }) {
+// Eye pixel positions in the 16x16 grid (for idle/walk poses).
+// Each eye is a 2x2 block.
+const EYE_PIXELS = {
+  left: [
+    [5, 5], [6, 5],
+    [5, 6], [6, 6],
+  ],
+  right: [
+    [9, 5], [10, 5],
+    [9, 6], [10, 6],
+  ],
+} as const;
+// Sparkle highlight pixel inside each eye (top-right corner of each 2x2).
+const EYE_SPARKLE = [
+  [6, 5],
+  [10, 5],
+] as const;
+// Closed-eye line (replaces eyes with a single horizontal line).
+const EYE_CLOSED = [
+  [5, 6], [6, 6],
+  [9, 6], [10, 6],
+] as const;
+
+function CatSprite({
+  state,
+  frame,
+  eyeMode,
+}: {
+  state: CatState;
+  frame: 0 | 1;
+  eyeMode: EyeMode;
+}) {
   let grid: number[][];
   if (state === "sleep") grid = frame === 0 ? SLEEP_A : SLEEP_B;
   else if (state === "walk") grid = frame === 0 ? WALK_A : WALK_B;
   else grid = frame === 0 ? IDLE_A : IDLE_B; // idle + jump share idle frames
+
+  // Apply eye overlay only on non-sleep poses (sleep already has closed eyes baked in).
+  const overlayRects: React.ReactElement[] = [];
+  if (state !== "sleep") {
+    if (eyeMode === "closed") {
+      // Erase eyes (paint with body fill = 2), then redraw a thin closed line.
+      [...EYE_PIXELS.left, ...EYE_PIXELS.right].forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`erase-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[2]} />,
+        );
+      });
+      EYE_CLOSED.forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`closed-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[1]} />,
+        );
+      });
+    } else if (eyeMode === "sparkle") {
+      EYE_SPARKLE.forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`spark-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[2]} />,
+        );
+      });
+    }
+  }
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -179,6 +235,7 @@ function CatSprite({ state, frame }: { state: CatState; frame: 0 | 1 }) {
       style={{ imageRendering: "pixelated" }}
     >
       {gridToSvg(grid, state + frame)}
+      {overlayRects}
     </svg>
   );
 }
