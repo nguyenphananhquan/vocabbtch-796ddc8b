@@ -287,11 +287,42 @@ export function PixelCatCompanion() {
   const [pos, setPos] = useState(() => randomEdgePos());
   const [dir, setDir] = useState<Dir>(1);
   const [reaction, setReaction] = useState<Reaction>(null);
+  const [eyeMode, setEyeMode] = useState<EyeMode>("normal");
   const stateTimer = useRef<number | null>(null);
   const walkTimer = useRef<number | null>(null);
   const reactionTimer = useRef<number | null>(null);
+  const eyeTimer = useRef<number | null>(null);
   const pickNextRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
+
+  // Pose-synced eye behavior + periodic stepped blink.
+  // - walk → normal alert eyes (no sparkle to keep motion readable)
+  // - idle → occasional sparkle blink
+  // - sleep → sprite already shows closed eyes; overlay stays "normal"
+  useEffect(() => {
+    if (!enabled) return;
+    if (eyeTimer.current) window.clearInterval(eyeTimer.current);
+
+    if (state !== "idle") {
+      setEyeMode("normal");
+      return;
+    }
+
+    // Idle: every ~2.4s do a 2-frame stepped blink: closed → sparkle → normal.
+    function blink() {
+      setEyeMode("closed");
+      window.setTimeout(() => setEyeMode("sparkle"), 140);
+      window.setTimeout(() => setEyeMode("normal"), 420);
+    }
+    // Initial sparkle when entering idle
+    setEyeMode("sparkle");
+    window.setTimeout(() => setEyeMode("normal"), 320);
+    eyeTimer.current = window.setInterval(blink, 2400);
+    return () => {
+      if (eyeTimer.current) window.clearInterval(eyeTimer.current);
+      eyeTimer.current = null;
+    };
+  }, [enabled, state]);
 
   // Sprite frame ticker — stepped, no smoothing.
   useEffect(() => {
