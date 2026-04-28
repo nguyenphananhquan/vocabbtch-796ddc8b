@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteWord, getWord, type Word } from "@/lib/vocab";
+import { triggerCat } from "@/lib/cat-events";
 import { toast } from "sonner";
 import { Pencil, Trash2, ArrowLeft } from "lucide-react";
 
@@ -37,10 +38,19 @@ function WordDetailPage() {
   const navigate = useNavigate();
   const [word, setWord] = useState<Word | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const articleRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     getWord(id)
-      .then(setWord)
+      .then((w) => {
+        setWord(w);
+        if (w) {
+          // Let the article render, then ask the cat to look toward it.
+          window.setTimeout(() => {
+            triggerCat("look", { target: articleRef.current });
+          }, 50);
+        }
+      })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"));
   }, [id]);
 

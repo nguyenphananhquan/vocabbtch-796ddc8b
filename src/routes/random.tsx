@@ -19,9 +19,12 @@ function RandomPage() {
   const draw = useCallback(() => {
     setWord(undefined);
     setError(null);
-    triggerCat("curious");
+    triggerCat("jump");
     getRandomWord()
-      .then(setWord)
+      .then((w) => {
+        setWord(w);
+        if (w) triggerCat("jump");
+      })
       .catch((e) => setError(e instanceof Error ? e.message : "Failed"));
   }, []);
 
