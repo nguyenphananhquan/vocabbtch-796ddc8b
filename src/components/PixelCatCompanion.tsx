@@ -602,6 +602,108 @@ export function PixelCatCompanion() {
     return () => window.removeEventListener("resize", onResize);
   }, [enabled]);
 
+  // ---- Tap interaction ------------------------------------------------
+  function clearAllTimers() {
+    if (stateTimer.current) window.clearTimeout(stateTimer.current);
+    if (walkTimer.current) window.clearInterval(walkTimer.current);
+    if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+    stateTimer.current = null;
+    walkTimer.current = null;
+    reactionTimer.current = null;
+  }
+
+  function showBubble(msg: string, ms = 2000) {
+    if (bubbleTimer.current) window.clearTimeout(bubbleTimer.current);
+    setBubble(msg);
+    bubbleTimer.current = window.setTimeout(() => {
+      setBubble(null);
+      bubbleTimer.current = null;
+    }, ms);
+  }
+
+  function endTapReaction() {
+    pausedRef.current = false;
+    setReaction(null);
+    reactionTimer.current = null;
+    pickNextRef.current?.();
+  }
+
+  function handleTap(e: React.MouseEvent | React.TouchEvent) {
+    e.stopPropagation();
+    // Interrupt any ongoing motion / reaction.
+    clearAllTimers();
+    pausedRef.current = true;
+
+    const choice = Math.floor(Math.random() * 5);
+    const msg = TAP_BUBBLE_MESSAGES[Math.floor(Math.random() * TAP_BUBBLE_MESSAGES.length)];
+
+    switch (choice) {
+      case 0: {
+        // jump
+        setReaction("tap_jump");
+        setState("idle");
+        const startY = pos.y;
+        let hops = 0;
+        const hopId = window.setInterval(() => {
+          hops++;
+          setPos((p) => ({ x: p.x, y: hops % 2 === 1 ? startY - 16 : startY }));
+          if (hops >= 4) window.clearInterval(hopId);
+        }, 180);
+        reactionTimer.current = window.setTimeout(() => {
+          window.clearInterval(hopId);
+          setPos((p) => ({ x: p.x, y: startY }));
+          endTapReaction();
+        }, 1400);
+        showBubble(msg);
+        return;
+      }
+      case 1: {
+        // meow speech bubble
+        setReaction("tap_meow");
+        setState("idle");
+        showBubble("meow!");
+        reactionTimer.current = window.setTimeout(endTapReaction, 1600);
+        return;
+      }
+      case 2: {
+        // heart bubble
+        setReaction("tap_heart");
+        setState("idle");
+        setEyeMode("sparkle");
+        reactionTimer.current = window.setTimeout(() => {
+          setEyeMode("normal");
+          endTapReaction();
+        }, 1600);
+        return;
+      }
+      case 3: {
+        // spin / turn around — flip direction in stepped intervals
+        setReaction("tap_spin");
+        setState("idle");
+        let flips = 0;
+        const flipId = window.setInterval(() => {
+          flips++;
+          setDir((d) => (d === 1 ? -1 : 1));
+          if (flips >= 6) window.clearInterval(flipId);
+        }, 140);
+        reactionTimer.current = window.setTimeout(() => {
+          window.clearInterval(flipId);
+          endTapReaction();
+        }, 1400);
+        showBubble(msg);
+        return;
+      }
+      default: {
+        // sleep briefly
+        setReaction("tap_sleep");
+        setState("sleep");
+        reactionTimer.current = window.setTimeout(endTapReaction, 2000);
+        showBubble(msg);
+        return;
+      }
+    }
+  }
+
   if (!enabled) return null;
 
   return (
