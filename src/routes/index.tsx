@@ -190,6 +190,11 @@ function IndexPage() {
                     to="/words/$id"
                     params={{ id: w.id }}
                     className="flex-1 min-w-0"
+                    onMouseDown={(e) =>
+                      triggerCat("walk_to", {
+                        target: e.currentTarget.closest("li") as HTMLElement,
+                      })
+                    }
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{w.word}</span>
