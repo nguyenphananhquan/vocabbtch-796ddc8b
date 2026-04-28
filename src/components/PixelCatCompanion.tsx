@@ -725,12 +725,19 @@ export function PixelCatCompanion() {
         @media (min-width: 640px) { :root { --cat-size: 64px; } }
       `}</style>
       <div
+        onClick={handleTap}
+        onTouchStart={handleTap}
+        role="button"
+        tabIndex={-1}
         style={{
           width: "100%",
           height: "100%",
           // Mirror by walking direction. No transition — instant flip.
           transform: `scaleX(${dir === -1 ? -1 : 1})`,
           transition: "none",
+          cursor: "pointer",
+          pointerEvents: "auto",
+          touchAction: "manipulation",
         }}
       >
         <CatSprite state={state} frame={frame} eyeMode={eyeMode} />
