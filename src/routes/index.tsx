@@ -164,6 +164,7 @@ function IndexPage() {
             {filtered.map((w) => (
               <li
                 key={w.id}
+                data-cat-anchor
                 className="rounded-lg border bg-card p-4 transition-colors hover:bg-accent/40"
               >
                 <div className="flex items-start justify-between gap-3">

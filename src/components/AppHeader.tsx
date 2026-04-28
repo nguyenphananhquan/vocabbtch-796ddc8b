@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Plus, Shuffle } from "lucide-react";
+import { BookOpen, Cat, Plus, Shuffle } from "lucide-react";
+import { useCatCompanion } from "@/hooks/use-cat-companion";
 
 export function AppHeader() {
+  const { enabled, setEnabled } = useCatCompanion();
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-3">
@@ -35,6 +37,16 @@ export function AppHeader() {
           >
             API
           </Link>
+          <button
+            type="button"
+            onClick={() => setEnabled(!enabled)}
+            aria-pressed={enabled}
+            title={enabled ? "Cat companion: on" : "Cat companion: off"}
+            className={`rounded-md p-1.5 hover:bg-accent transition-opacity ${enabled ? "opacity-100" : "opacity-40"}`}
+          >
+            <Cat className="h-4 w-4" />
+            <span className="sr-only">Toggle cat companion</span>
+          </button>
           <Link
             to="/words/new"
             className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/90"
