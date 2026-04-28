@@ -260,6 +260,7 @@ export function PixelCatCompanion() {
 
     function pickNext() {
       clearTimers();
+      if (pausedRef.current) return; // a reaction is in control
       const roll = Math.random();
       let next: CatState;
       if (roll < 0.4) next = "idle";
@@ -305,9 +306,154 @@ export function PixelCatCompanion() {
       stateTimer.current = window.setTimeout(pickNext, dur);
     }
 
+    pickNextRef.current = pickNext;
     pickNext();
-    return clearTimers;
+    return () => {
+      clearTimers();
+      pickNextRef.current = null;
+    };
   }, [enabled]);
+
+  // ---- Reaction event system -----------------------------------------
+  useEffect(() => {
+    if (!enabled) return;
+
+    function clearAutoTimers() {
+      if (stateTimer.current) window.clearTimeout(stateTimer.current);
+      if (walkTimer.current) window.clearInterval(walkTimer.current);
+      stateTimer.current = null;
+      walkTimer.current = null;
+    }
+
+    function endReaction() {
+      pausedRef.current = false;
+      setReaction(null);
+      reactionTimer.current = null;
+      pickNextRef.current?.();
+    }
+
+    function startReaction(detail: CatActionDetail) {
+      // Pause autonomous behavior and override.
+      pausedRef.current = true;
+      clearAutoTimers();
+      if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+
+      const dur = detail.durationMs;
+
+      switch (detail.action) {
+        case "jump": {
+          // Happy hop: a couple of instant teleports up + back down.
+          setReaction("jump");
+          setState("idle");
+          const startY = pos.y;
+          let hops = 0;
+          const hopId = window.setInterval(() => {
+            hops++;
+            setPos((p) => ({ x: p.x, y: hops % 2 === 1 ? startY - 16 : startY }));
+            if (hops >= 4) {
+              window.clearInterval(hopId);
+            }
+          }, 180);
+          reactionTimer.current = window.setTimeout(() => {
+            window.clearInterval(hopId);
+            setPos((p) => ({ x: p.x, y: startY }));
+            endReaction();
+          }, dur ?? 1400);
+          return;
+        }
+        case "curious": {
+          // Look around: flip direction a few times while idle.
+          setReaction("curious");
+          setState("idle");
+          let flips = 0;
+          const flipId = window.setInterval(() => {
+            flips++;
+            setDir((d) => (d === 1 ? -1 : 1));
+            if (flips >= 4) window.clearInterval(flipId);
+          }, 280);
+          reactionTimer.current = window.setTimeout(() => {
+            window.clearInterval(flipId);
+            endReaction();
+          }, dur ?? 1600);
+          return;
+        }
+        case "confused": {
+          // Tiny tilt — stay idle, show "?" bubble.
+          setReaction("confused");
+          setState("idle");
+          reactionTimer.current = window.setTimeout(endReaction, dur ?? 1800);
+          return;
+        }
+        case "sad_sleep": {
+          // Curl up and sleep with a sad blink.
+          setReaction("sad_sleep");
+          setState("sleep");
+          reactionTimer.current = window.setTimeout(endReaction, dur ?? 3000);
+          return;
+        }
+        case "walk_to": {
+          // Walk in discrete steps toward the target element's x.
+          setReaction("walk_to");
+          let targetEl: HTMLElement | null = null;
+          if (detail.target instanceof HTMLElement) targetEl = detail.target;
+          else if (typeof detail.target === "string")
+            targetEl = document.querySelector<HTMLElement>(detail.target);
+
+          const b = getBounds();
+          let targetX = pos.x;
+          if (targetEl) {
+            const r = targetEl.getBoundingClientRect();
+            // Land just to the right edge of the card, snapped to step grid.
+            targetX = clamp(
+              Math.round((r.right - b.size - 4) / STEP_PX) * STEP_PX,
+              b.minX,
+              b.maxX,
+            );
+          }
+          const newDir: Dir = targetX < pos.x ? -1 : 1;
+          setDir(newDir);
+          setState("walk");
+          walkTimer.current = window.setInterval(() => {
+            setPos((p) => {
+              const nx = clamp(p.x + newDir * STEP_PX, b.minX, b.maxX);
+              if ((newDir === 1 && nx >= targetX) || (newDir === -1 && nx <= targetX)) {
+                if (walkTimer.current) {
+                  window.clearInterval(walkTimer.current);
+                  walkTimer.current = null;
+                }
+                setState("idle");
+              }
+              return { x: nx, y: p.y };
+            });
+          }, 220);
+          // Hard cap so we always release control.
+          reactionTimer.current = window.setTimeout(() => {
+            if (walkTimer.current) {
+              window.clearInterval(walkTimer.current);
+              walkTimer.current = null;
+            }
+            setState("idle");
+            endReaction();
+          }, dur ?? 4000);
+          return;
+        }
+      }
+    }
+
+    function onCatAction(e: Event) {
+      const detail = (e as CustomEvent<CatActionDetail>).detail;
+      if (!detail || !detail.action) return;
+      startReaction(detail);
+    }
+
+    window.addEventListener(CAT_EVENT, onCatAction);
+    return () => {
+      window.removeEventListener(CAT_EVENT, onCatAction);
+      if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+      reactionTimer.current = null;
+      pausedRef.current = false;
+    };
+  }, [enabled, pos.y, pos.x]);
 
   // Re-clamp on resize so the cat never gets stuck off-screen.
   useEffect(() => {
