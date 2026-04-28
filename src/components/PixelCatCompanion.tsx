@@ -4,7 +4,21 @@ import { CAT_EVENT, type CatActionDetail } from "@/lib/cat-events";
 
 type CatState = "idle" | "walk" | "sleep" | "jump";
 type Dir = -1 | 1;
-type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to" | "look";
+type Reaction =
+  | null
+  | "jump"
+  | "curious"
+  | "confused"
+  | "sad_sleep"
+  | "walk_to"
+  | "look"
+  | "tap_meow"
+  | "tap_heart"
+  | "tap_spin"
+  | "tap_sleep"
+  | "tap_jump";
+
+const TAP_BUBBLE_MESSAGES = ["grrr", "btch?", "stop!", "really?"] as const;
 type EyeMode = "normal" | "sparkle" | "closed";
 
 // ---- Pixel sprite (16x16) ----------------------------------------------
