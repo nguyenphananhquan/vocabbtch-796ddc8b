@@ -228,8 +228,12 @@ export function PixelCatCompanion() {
   const [frame, setFrame] = useState<0 | 1>(0);
   const [pos, setPos] = useState(() => randomEdgePos());
   const [dir, setDir] = useState<Dir>(1);
+  const [reaction, setReaction] = useState<Reaction>(null);
   const stateTimer = useRef<number | null>(null);
   const walkTimer = useRef<number | null>(null);
+  const reactionTimer = useRef<number | null>(null);
+  const pickNextRef = useRef<(() => void) | null>(null);
+  const pausedRef = useRef(false);
 
   // Sprite frame ticker — stepped, no smoothing.
   useEffect(() => {
