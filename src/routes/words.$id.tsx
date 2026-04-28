@@ -87,7 +87,7 @@ function WordDetailPage() {
         )}
 
         {word && (
-          <article className="max-w-2xl space-y-5">
+          <article ref={articleRef} className="max-w-2xl space-y-5">
             <header>
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold">{word.word}</h1>
