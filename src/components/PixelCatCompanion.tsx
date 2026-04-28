@@ -223,7 +223,7 @@ export function PixelCatCompanion() {
         left: `${pos.left}px`,
         width: "var(--cat-size, 64px)",
         // Preserve the 24:20 aspect ratio of the pixel grid
-        height: "calc(var(--cat-size, 64px) * 20 / 24)",
+        height: "calc(var(--cat-size, 64px) * 16 / 22)",
         transition: "opacity 650ms ease-in-out",
         opacity: visible ? baseOpacity : 0,
       }}
