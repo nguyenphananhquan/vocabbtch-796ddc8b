@@ -4,7 +4,8 @@ import { CAT_EVENT, type CatActionDetail } from "@/lib/cat-events";
 
 type CatState = "idle" | "walk" | "sleep" | "jump";
 type Dir = -1 | 1;
-type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to";
+type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to" | "look";
+type EyeMode = "normal" | "sparkle" | "closed";
 
 // ---- Pixel sprite (16x16) ----------------------------------------------
 // 0 transparent, 1 outline (black), 2 fill (white)
@@ -163,11 +164,67 @@ function gridToSvg(grid: number[][], key: string) {
   return rects;
 }
 
-function CatSprite({ state, frame }: { state: CatState; frame: 0 | 1 }) {
+// Eye pixel positions in the 16x16 grid (for idle/walk poses).
+// Each eye is a 2x2 block.
+const EYE_PIXELS = {
+  left: [
+    [5, 5], [6, 5],
+    [5, 6], [6, 6],
+  ],
+  right: [
+    [9, 5], [10, 5],
+    [9, 6], [10, 6],
+  ],
+} as const;
+// Sparkle highlight pixel inside each eye (top-right corner of each 2x2).
+const EYE_SPARKLE = [
+  [6, 5],
+  [10, 5],
+] as const;
+// Closed-eye line (replaces eyes with a single horizontal line).
+const EYE_CLOSED = [
+  [5, 6], [6, 6],
+  [9, 6], [10, 6],
+] as const;
+
+function CatSprite({
+  state,
+  frame,
+  eyeMode,
+}: {
+  state: CatState;
+  frame: 0 | 1;
+  eyeMode: EyeMode;
+}) {
   let grid: number[][];
   if (state === "sleep") grid = frame === 0 ? SLEEP_A : SLEEP_B;
   else if (state === "walk") grid = frame === 0 ? WALK_A : WALK_B;
   else grid = frame === 0 ? IDLE_A : IDLE_B; // idle + jump share idle frames
+
+  // Apply eye overlay only on non-sleep poses (sleep already has closed eyes baked in).
+  const overlayRects: React.ReactElement[] = [];
+  if (state !== "sleep") {
+    if (eyeMode === "closed") {
+      // Erase eyes (paint with body fill = 2), then redraw a thin closed line.
+      [...EYE_PIXELS.left, ...EYE_PIXELS.right].forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`erase-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[2]} />,
+        );
+      });
+      EYE_CLOSED.forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`closed-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[1]} />,
+        );
+      });
+    } else if (eyeMode === "sparkle") {
+      EYE_SPARKLE.forEach(([x, y], i) => {
+        overlayRects.push(
+          <rect key={`spark-${i}`} x={x} y={y} width={1} height={1} fill={PALETTE[2]} />,
+        );
+      });
+    }
+  }
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -178,6 +235,7 @@ function CatSprite({ state, frame }: { state: CatState; frame: 0 | 1 }) {
       style={{ imageRendering: "pixelated" }}
     >
       {gridToSvg(grid, state + frame)}
+      {overlayRects}
     </svg>
   );
 }
@@ -229,11 +287,42 @@ export function PixelCatCompanion() {
   const [pos, setPos] = useState(() => randomEdgePos());
   const [dir, setDir] = useState<Dir>(1);
   const [reaction, setReaction] = useState<Reaction>(null);
+  const [eyeMode, setEyeMode] = useState<EyeMode>("normal");
   const stateTimer = useRef<number | null>(null);
   const walkTimer = useRef<number | null>(null);
   const reactionTimer = useRef<number | null>(null);
+  const eyeTimer = useRef<number | null>(null);
   const pickNextRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
+
+  // Pose-synced eye behavior + periodic stepped blink.
+  // - walk → normal alert eyes (no sparkle to keep motion readable)
+  // - idle → occasional sparkle blink
+  // - sleep → sprite already shows closed eyes; overlay stays "normal"
+  useEffect(() => {
+    if (!enabled) return;
+    if (eyeTimer.current) window.clearInterval(eyeTimer.current);
+
+    if (state !== "idle") {
+      setEyeMode("normal");
+      return;
+    }
+
+    // Idle: every ~2.4s do a 2-frame stepped blink: closed → sparkle → normal.
+    function blink() {
+      setEyeMode("closed");
+      window.setTimeout(() => setEyeMode("sparkle"), 140);
+      window.setTimeout(() => setEyeMode("normal"), 420);
+    }
+    // Initial sparkle when entering idle
+    setEyeMode("sparkle");
+    window.setTimeout(() => setEyeMode("normal"), 320);
+    eyeTimer.current = window.setInterval(blink, 2400);
+    return () => {
+      if (eyeTimer.current) window.clearInterval(eyeTimer.current);
+      eyeTimer.current = null;
+    };
+  }, [enabled, state]);
 
   // Sprite frame ticker — stepped, no smoothing.
   useEffect(() => {
@@ -391,6 +480,33 @@ export function PixelCatCompanion() {
           reactionTimer.current = window.setTimeout(endReaction, dur ?? 3000);
           return;
         }
+        case "look": {
+          // Face toward the target element for ~2s. No movement, just turn + sparkle.
+          setReaction("look");
+          setState("idle");
+          let targetEl: HTMLElement | null = null;
+          if (detail.target instanceof HTMLElement) targetEl = detail.target;
+          else if (typeof detail.target === "string")
+            targetEl = document.querySelector<HTMLElement>(detail.target);
+          if (targetEl) {
+            const r = targetEl.getBoundingClientRect();
+            const targetCenterX = r.left + r.width / 2;
+            const catCenterX = pos.x + getBounds().size / 2;
+            setDir(targetCenterX < catCenterX ? -1 : 1);
+          }
+          // Sparkle blink rhythm during the look (stepped, no easing).
+          setEyeMode("sparkle");
+          const t1 = window.setTimeout(() => setEyeMode("closed"), 400);
+          const t2 = window.setTimeout(() => setEyeMode("sparkle"), 540);
+          const t3 = window.setTimeout(() => setEyeMode("normal"), 1200);
+          reactionTimer.current = window.setTimeout(() => {
+            window.clearTimeout(t1);
+            window.clearTimeout(t2);
+            window.clearTimeout(t3);
+            endReaction();
+          }, dur ?? 2000);
+          return;
+        }
         case "walk_to": {
           // Walk in discrete steps toward the target element's x.
           setReaction("walk_to");
@@ -498,7 +614,7 @@ export function PixelCatCompanion() {
           transition: "none",
         }}
       >
-        <CatSprite state={state} frame={frame} />
+        <CatSprite state={state} frame={frame} eyeMode={eyeMode} />
       </div>
       {state === "sleep" && (
         <span
