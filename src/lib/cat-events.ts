@@ -2,9 +2,10 @@
 // Dispatch events from anywhere with `triggerCat("jump")` and the cat will react.
 
 export type CatAction =
-  | "jump" // happy — used for word_created
-  | "curious" // looks around — word_refreshed
-  | "walk_to" // walks toward a target element — word_opened
+  | "jump" // happy — used for word_created and word_refreshed
+  | "curious" // looks around
+  | "look" // faces toward a target element for a moment — word_opened
+  | "walk_to" // walks toward a target element
   | "confused" // small head tilt + question mark — empty_search
   | "sad_sleep"; // blinks sadly / curls up — error_loading_words
 
