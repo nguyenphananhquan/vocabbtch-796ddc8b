@@ -480,6 +480,33 @@ export function PixelCatCompanion() {
           reactionTimer.current = window.setTimeout(endReaction, dur ?? 3000);
           return;
         }
+        case "look": {
+          // Face toward the target element for ~2s. No movement, just turn + sparkle.
+          setReaction("look");
+          setState("idle");
+          let targetEl: HTMLElement | null = null;
+          if (detail.target instanceof HTMLElement) targetEl = detail.target;
+          else if (typeof detail.target === "string")
+            targetEl = document.querySelector<HTMLElement>(detail.target);
+          if (targetEl) {
+            const r = targetEl.getBoundingClientRect();
+            const targetCenterX = r.left + r.width / 2;
+            const catCenterX = pos.x + getBounds().size / 2;
+            setDir(targetCenterX < catCenterX ? -1 : 1);
+          }
+          // Sparkle blink rhythm during the look (stepped, no easing).
+          setEyeMode("sparkle");
+          const t1 = window.setTimeout(() => setEyeMode("closed"), 400);
+          const t2 = window.setTimeout(() => setEyeMode("sparkle"), 540);
+          const t3 = window.setTimeout(() => setEyeMode("normal"), 1200);
+          reactionTimer.current = window.setTimeout(() => {
+            window.clearTimeout(t1);
+            window.clearTimeout(t2);
+            window.clearTimeout(t3);
+            endReaction();
+          }, dur ?? 2000);
+          return;
+        }
         case "walk_to": {
           // Walk in discrete steps toward the target element's x.
           setReaction("walk_to");
