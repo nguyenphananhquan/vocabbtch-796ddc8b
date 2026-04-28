@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCatCompanion } from "@/hooks/use-cat-companion";
+import { CAT_EVENT, type CatActionDetail } from "@/lib/cat-events";
 
 type CatState = "idle" | "walk" | "sleep" | "jump";
 type Dir = -1 | 1;
+type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to";
 
 // ---- Pixel sprite (16x16) ----------------------------------------------
 // 0 transparent, 1 outline (black), 2 fill (white)
