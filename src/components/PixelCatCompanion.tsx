@@ -516,6 +516,33 @@ export function PixelCatCompanion() {
           z
         </span>
       )}
+      {reaction && reaction !== "walk_to" && (
+        <span
+          style={{
+            position: "absolute",
+            top: -10,
+            right: -6,
+            fontSize: 12,
+            fontFamily: "monospace",
+            fontWeight: 700,
+            color:
+              reaction === "jump"
+                ? "#e11d48"
+                : reaction === "sad_sleep"
+                  ? "#1a1a1a"
+                  : "#1a1a1a",
+            animation: "cat-z-blink 0.6s steps(2) infinite",
+          }}
+        >
+          {reaction === "jump"
+            ? "♥"
+            : reaction === "curious"
+              ? "?"
+              : reaction === "confused"
+                ? "?!"
+                : "z"}
+        </span>
+      )}
       <style>{`
         @keyframes cat-z-blink {
           0% { opacity: 0; }
