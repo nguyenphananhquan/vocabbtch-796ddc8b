@@ -137,7 +137,9 @@ export function PixelCatCompanion() {
   const [state, setState] = useState<CatState>("idle");
   const [pos, setPos] = useState<Pos>(() => ({ top: 200, left: 24, flip: false }));
   const [bobFrame, setBobFrame] = useState(0);
+  const [visible, setVisible] = useState(true);
   const timerRef = useRef<number | null>(null);
+  const fadeRef = useRef<number | null>(null);
 
   // initialize position once mounted
   useEffect(() => {
@@ -145,35 +147,46 @@ export function PixelCatCompanion() {
     setPos(pickSafePosition());
   }, [enabled]);
 
-  // bob frames for walk/idle to fake animation
+  // stepped bob: slower for idle/sleep, a bit quicker for walking — stays pixel-perfect
   useEffect(() => {
     if (!enabled) return;
-    const id = window.setInterval(() => setBobFrame((f) => (f + 1) % 2), 380);
+    const period = state === "walk-left" || state === "walk-right" ? 320 : 700;
+    const id = window.setInterval(() => setBobFrame((f) => (f + 1) % 2), period);
     return () => window.clearInterval(id);
-  }, [enabled]);
+  }, [enabled, state]);
 
-  // schedule random state/position changes
+  // schedule random state/position changes — slower, polished cadence
   useEffect(() => {
     if (!enabled) return;
 
     function schedule() {
-      const delay = 10000 + Math.random() * 10000; // 10–20s
+      const delay = 12000 + Math.random() * 8000; // 12–20s
       timerRef.current = window.setTimeout(tick, delay);
     }
+
     function tick() {
       const next = STATES[Math.floor(Math.random() * STATES.length)];
-      if (next === "look-at-card") {
-        const p = pickAnchorPosition();
-        setPos(p ?? pickSafePosition());
-      } else {
-        setPos(pickSafePosition());
-      }
-      setState(next);
+      // Fade out, then teleport to a fresh safe spot, then fade in.
+      // This avoids the unnatural sliding across the screen.
+      setVisible(false);
+      if (fadeRef.current) window.clearTimeout(fadeRef.current);
+      fadeRef.current = window.setTimeout(() => {
+        if (next === "look-at-card") {
+          const p = pickAnchorPosition();
+          setPos(p ?? pickSafePosition());
+        } else {
+          setPos(pickSafePosition());
+        }
+        setState(next);
+        // small beat before fading back in for a calm feel
+        fadeRef.current = window.setTimeout(() => setVisible(true), 120);
+      }, 650);
       schedule();
     }
     schedule();
     return () => {
       if (timerRef.current) window.clearTimeout(timerRef.current);
+      if (fadeRef.current) window.clearTimeout(fadeRef.current);
     };
   }, [enabled]);
 
@@ -183,11 +196,12 @@ export function PixelCatCompanion() {
   const jumping = state === "jump";
   const walking = state === "walk-left" || state === "walk-right";
 
-  // Direction: if walking, override flip to face direction
   const flip = state === "walk-left" ? true : state === "walk-right" ? false : pos.flip;
 
-  // bob translateY
-  const bobY = !sleeping && (walking || state === "idle") && bobFrame === 1 ? -2 : 0;
+  // bob is a stepped 2-frame translation (1px) — pixel-art friendly, no smoothing
+  const bobY = !sleeping && bobFrame === 1 ? -1 : 0;
+
+  const baseOpacity = sleeping ? 0.75 : 0.95;
 
   return (
     <div
@@ -198,34 +212,56 @@ export function PixelCatCompanion() {
         left: `${pos.left}px`,
         width: "var(--cat-size, 56px)",
         height: "var(--cat-size, 56px)",
-        transition: "top 1.4s ease-in-out, left 1.4s ease-in-out, opacity 0.4s ease",
-        opacity: sleeping ? 0.75 : 0.95,
+        transition: "opacity 650ms ease-in-out",
+        opacity: visible ? baseOpacity : 0,
       }}
     >
       <style>{`
         :root { --cat-size: 56px; }
         @media (min-width: 640px) { :root { --cat-size: 64px; } }
-        @keyframes cat-jump { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-14px); } 60% { transform: translateY(-10px); } }
-        @keyframes cat-sleep-pulse { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+        @keyframes cat-jump {
+          0%, 100% { transform: translateY(0); }
+          45%      { transform: translateY(-10px); }
+          70%      { transform: translateY(-3px); }
+        }
+        @keyframes cat-sleep-pulse { 0%,100% { opacity: 0.65; } 50% { opacity: 1; } }
+        @keyframes cat-walk-bob {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-1px); }
+        }
         @media (prefers-reduced-motion: reduce) {
-          .cat-anim-jump, .cat-anim-sleep { animation: none !important; }
+          .cat-anim-jump, .cat-anim-sleep, .cat-anim-walk { animation: none !important; }
         }
       `}</style>
       <div
-        className={jumping ? "cat-anim-jump" : sleeping ? "cat-anim-sleep" : ""}
         style={{
           width: "100%",
           height: "100%",
-          transform: `scaleX(${flip ? -1 : 1}) translateY(${bobY}px)`,
-          transition: "transform 180ms ease-out",
-          animation: jumping
-            ? "cat-jump 700ms ease-out"
-            : sleeping
-              ? "cat-sleep-pulse 2.4s ease-in-out infinite"
-              : undefined,
+          transform: `scaleX(${flip ? -1 : 1})`,
+          transition: "transform 600ms ease-in-out",
         }}
       >
-        <CatSvg sleeping={sleeping} />
+        <div
+          className={
+            jumping ? "cat-anim-jump" : walking ? "cat-anim-walk" : sleeping ? "cat-anim-sleep" : ""
+          }
+          style={{
+            width: "100%",
+            height: "100%",
+            transform: !walking && !jumping && !sleeping ? `translateY(${bobY}px)` : undefined,
+            // stepped (no smoothing) for non-animated states keeps the pixel feel
+            transition: "none",
+            animation: jumping
+              ? "cat-jump 900ms ease-out"
+              : walking
+                ? "cat-walk-bob 320ms steps(2, end) infinite"
+                : sleeping
+                  ? "cat-sleep-pulse 2.8s ease-in-out infinite"
+                  : undefined,
+          }}
+        >
+          <CatSvg sleeping={sleeping} />
+        </div>
       </div>
       {sleeping && (
         <span
@@ -236,7 +272,7 @@ export function PixelCatCompanion() {
             fontSize: 10,
             fontFamily: "monospace",
             color: "var(--color-muted-foreground)",
-            animation: "cat-sleep-pulse 2.4s ease-in-out infinite",
+            animation: "cat-sleep-pulse 2.8s ease-in-out infinite",
           }}
         >
           z
@@ -245,3 +281,4 @@ export function PixelCatCompanion() {
     </div>
   );
 }
+
