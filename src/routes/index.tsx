@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { AppHeader } from "@/components/AppHeader";
 import { listWords, deleteWord, WORD_CLASSES, type Word } from "@/lib/vocab";
+import { triggerCat } from "@/lib/cat-events";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
@@ -40,6 +41,7 @@ function IndexPage() {
       setWords(await listWords());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
+      triggerCat("sad_sleep");
     }
   }
 
