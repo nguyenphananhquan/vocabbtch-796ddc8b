@@ -587,7 +587,7 @@ export function PixelCatCompanion() {
           transition: "none",
         }}
       >
-        <CatSprite state={state} frame={frame} />
+        <CatSprite state={state} frame={frame} eyeMode={eyeMode} />
       </div>
       {state === "sleep" && (
         <span
