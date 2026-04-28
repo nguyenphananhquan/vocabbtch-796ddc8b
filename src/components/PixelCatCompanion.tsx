@@ -309,7 +309,10 @@ export function PixelCatCompanion() {
   const pickNextRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
 
-  // Pose-synced eye behavior + periodic stepped blink.
+  const [bubble, setBubble] = useState<string | null>(null);
+  const bubbleTimer = useRef<number | null>(null);
+
+
   // - walk → normal alert eyes (no sparkle to keep motion readable)
   // - idle → occasional sparkle blink
   // - sleep → sprite already shows closed eyes; overlay stays "normal"
