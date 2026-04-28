@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getRandomWord, type Word } from "@/lib/vocab";
+import { triggerCat } from "@/lib/cat-events";
 import { Shuffle } from "lucide-react";
 
 export const Route = createFileRoute("/random")({
@@ -18,6 +19,7 @@ function RandomPage() {
   const draw = useCallback(() => {
     setWord(undefined);
     setError(null);
+    triggerCat("curious");
     getRandomWord()
       .then(setWord)
       .catch((e) => setError(e instanceof Error ? e.message : "Failed"));

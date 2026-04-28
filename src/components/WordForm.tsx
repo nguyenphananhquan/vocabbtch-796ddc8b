@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createWord, updateWord, listNodes, WORD_CLASSES, type Word } from "@/lib/vocab";
+import { triggerCat } from "@/lib/cat-events";
 
 interface Props {
   initial?: Word;
@@ -80,6 +81,7 @@ export function WordForm({ initial }: Props) {
       } else {
         const created = await createWord(payload);
         toast.success("Word added");
+        triggerCat("jump");
         navigate({ to: "/words/$id", params: { id: created.id } });
       }
     } catch (err) {

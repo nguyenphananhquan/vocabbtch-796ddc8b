@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { AppHeader } from "@/components/AppHeader";
 import { listWords, deleteWord, WORD_CLASSES, type Word } from "@/lib/vocab";
+import { triggerCat } from "@/lib/cat-events";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
@@ -40,12 +41,29 @@ function IndexPage() {
       setWords(await listWords());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
+      triggerCat("sad_sleep");
     }
   }
 
   useEffect(() => {
     load();
   }, []);
+
+  // Empty-search reaction: cat looks confused when a query yields nothing.
+  useEffect(() => {
+    if (!words || !search.trim()) return;
+    const id = window.setTimeout(() => {
+      const q = search.toLowerCase();
+      const hasMatch = words.some(
+        (w) =>
+          w.word.toLowerCase().includes(q) ||
+          w.node.toLowerCase().includes(q) ||
+          (w.example ?? "").toLowerCase().includes(q),
+      );
+      if (!hasMatch) triggerCat("confused");
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [search, words]);
 
   async function onDelete(id: string, w: string) {
     if (!confirm(`Delete "${w}"?`)) return;
@@ -172,6 +190,11 @@ function IndexPage() {
                     to="/words/$id"
                     params={{ id: w.id }}
                     className="flex-1 min-w-0"
+                    onMouseDown={(e) =>
+                      triggerCat("walk_to", {
+                        target: e.currentTarget.closest("li") as HTMLElement,
+                      })
+                    }
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{w.word}</span>
