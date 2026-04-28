@@ -4,7 +4,21 @@ import { CAT_EVENT, type CatActionDetail } from "@/lib/cat-events";
 
 type CatState = "idle" | "walk" | "sleep" | "jump";
 type Dir = -1 | 1;
-type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to" | "look";
+type Reaction =
+  | null
+  | "jump"
+  | "curious"
+  | "confused"
+  | "sad_sleep"
+  | "walk_to"
+  | "look"
+  | "tap_meow"
+  | "tap_heart"
+  | "tap_spin"
+  | "tap_sleep"
+  | "tap_jump";
+
+const TAP_BUBBLE_MESSAGES = ["grrr", "btch?", "stop!", "really?"] as const;
 type EyeMode = "normal" | "sparkle" | "closed";
 
 // ---- Pixel sprite (16x16) ----------------------------------------------
@@ -295,7 +309,10 @@ export function PixelCatCompanion() {
   const pickNextRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
 
-  // Pose-synced eye behavior + periodic stepped blink.
+  const [bubble, setBubble] = useState<string | null>(null);
+  const bubbleTimer = useRef<number | null>(null);
+
+
   // - walk → normal alert eyes (no sparkle to keep motion readable)
   // - idle → occasional sparkle blink
   // - sleep → sprite already shows closed eyes; overlay stays "normal"
@@ -585,6 +602,108 @@ export function PixelCatCompanion() {
     return () => window.removeEventListener("resize", onResize);
   }, [enabled]);
 
+  // ---- Tap interaction ------------------------------------------------
+  function clearAllTimers() {
+    if (stateTimer.current) window.clearTimeout(stateTimer.current);
+    if (walkTimer.current) window.clearInterval(walkTimer.current);
+    if (reactionTimer.current) window.clearTimeout(reactionTimer.current);
+    stateTimer.current = null;
+    walkTimer.current = null;
+    reactionTimer.current = null;
+  }
+
+  function showBubble(msg: string, ms = 2000) {
+    if (bubbleTimer.current) window.clearTimeout(bubbleTimer.current);
+    setBubble(msg);
+    bubbleTimer.current = window.setTimeout(() => {
+      setBubble(null);
+      bubbleTimer.current = null;
+    }, ms);
+  }
+
+  function endTapReaction() {
+    pausedRef.current = false;
+    setReaction(null);
+    reactionTimer.current = null;
+    pickNextRef.current?.();
+  }
+
+  function handleTap(e: React.MouseEvent | React.TouchEvent) {
+    e.stopPropagation();
+    // Interrupt any ongoing motion / reaction.
+    clearAllTimers();
+    pausedRef.current = true;
+
+    const choice = Math.floor(Math.random() * 5);
+    const msg = TAP_BUBBLE_MESSAGES[Math.floor(Math.random() * TAP_BUBBLE_MESSAGES.length)];
+
+    switch (choice) {
+      case 0: {
+        // jump
+        setReaction("tap_jump");
+        setState("idle");
+        const startY = pos.y;
+        let hops = 0;
+        const hopId = window.setInterval(() => {
+          hops++;
+          setPos((p) => ({ x: p.x, y: hops % 2 === 1 ? startY - 16 : startY }));
+          if (hops >= 4) window.clearInterval(hopId);
+        }, 180);
+        reactionTimer.current = window.setTimeout(() => {
+          window.clearInterval(hopId);
+          setPos((p) => ({ x: p.x, y: startY }));
+          endTapReaction();
+        }, 1400);
+        showBubble(msg);
+        return;
+      }
+      case 1: {
+        // meow speech bubble
+        setReaction("tap_meow");
+        setState("idle");
+        showBubble("meow!");
+        reactionTimer.current = window.setTimeout(endTapReaction, 1600);
+        return;
+      }
+      case 2: {
+        // heart bubble
+        setReaction("tap_heart");
+        setState("idle");
+        setEyeMode("sparkle");
+        reactionTimer.current = window.setTimeout(() => {
+          setEyeMode("normal");
+          endTapReaction();
+        }, 1600);
+        return;
+      }
+      case 3: {
+        // spin / turn around — flip direction in stepped intervals
+        setReaction("tap_spin");
+        setState("idle");
+        let flips = 0;
+        const flipId = window.setInterval(() => {
+          flips++;
+          setDir((d) => (d === 1 ? -1 : 1));
+          if (flips >= 6) window.clearInterval(flipId);
+        }, 140);
+        reactionTimer.current = window.setTimeout(() => {
+          window.clearInterval(flipId);
+          endTapReaction();
+        }, 1400);
+        showBubble(msg);
+        return;
+      }
+      default: {
+        // sleep briefly
+        setReaction("tap_sleep");
+        setState("sleep");
+        reactionTimer.current = window.setTimeout(endTapReaction, 2000);
+        showBubble(msg);
+        return;
+      }
+    }
+  }
+
   if (!enabled) return null;
 
   return (
@@ -606,12 +725,19 @@ export function PixelCatCompanion() {
         @media (min-width: 640px) { :root { --cat-size: 64px; } }
       `}</style>
       <div
+        onClick={handleTap}
+        onTouchStart={handleTap}
+        role="button"
+        tabIndex={-1}
         style={{
           width: "100%",
           height: "100%",
           // Mirror by walking direction. No transition — instant flip.
           transform: `scaleX(${dir === -1 ? -1 : 1})`,
           transition: "none",
+          cursor: "pointer",
+          pointerEvents: "auto",
+          touchAction: "manipulation",
         }}
       >
         <CatSprite state={state} frame={frame} eyeMode={eyeMode} />
@@ -632,7 +758,7 @@ export function PixelCatCompanion() {
           z
         </span>
       )}
-      {reaction && reaction !== "walk_to" && (
+      {reaction && reaction !== "walk_to" && reaction !== "tap_meow" && reaction !== "tap_sleep" && reaction !== "tap_spin" && reaction !== "tap_jump" && (
         <span
           style={{
             position: "absolute",
@@ -642,15 +768,13 @@ export function PixelCatCompanion() {
             fontFamily: "monospace",
             fontWeight: 700,
             color:
-              reaction === "jump"
+              reaction === "jump" || reaction === "tap_heart"
                 ? "#e11d48"
-                : reaction === "sad_sleep"
-                  ? "#1a1a1a"
-                  : "#1a1a1a",
+                : "#1a1a1a",
             animation: "cat-z-blink 0.6s steps(2) infinite",
           }}
         >
-          {reaction === "jump"
+          {reaction === "jump" || reaction === "tap_heart"
             ? "♥"
             : reaction === "curious"
               ? "?"
@@ -659,11 +783,39 @@ export function PixelCatCompanion() {
                 : "z"}
         </span>
       )}
+      {bubble && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: "50%",
+            transform: "translate(-50%, -4px)",
+            background: "#ffffff",
+            color: "#1a1a1a",
+            border: "2px solid #1a1a1a",
+            padding: "2px 6px",
+            fontFamily: "monospace",
+            fontSize: 10,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            imageRendering: "pixelated",
+            // Stepped pop-in, no smooth easing.
+            animation: "cat-bubble-pop 0.18s steps(2) both",
+            boxShadow: "2px 2px 0 #1a1a1a",
+          }}
+        >
+          {bubble}
+        </div>
+      )}
       <style>{`
         @keyframes cat-z-blink {
           0% { opacity: 0; }
           50% { opacity: 1; }
           100% { opacity: 0; }
+        }
+        @keyframes cat-bubble-pop {
+          0% { opacity: 0; transform: translate(-50%, 0); }
+          100% { opacity: 1; transform: translate(-50%, -4px); }
         }
       `}</style>
     </div>
