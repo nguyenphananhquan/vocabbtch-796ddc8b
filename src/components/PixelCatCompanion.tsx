@@ -241,19 +241,20 @@ export function PixelCatCompanion() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed z-40 text-foreground select-none"
+      className="pointer-events-none fixed z-40 select-none"
       style={{
         top: `${pos.top}px`,
         left: `${pos.left}px`,
-        width: "var(--cat-size, 56px)",
-        height: "var(--cat-size, 56px)",
+        width: "var(--cat-size, 64px)",
+        // Preserve the 24:20 aspect ratio of the pixel grid
+        height: "calc(var(--cat-size, 64px) * 20 / 24)",
         transition: "opacity 650ms ease-in-out",
         opacity: visible ? baseOpacity : 0,
       }}
     >
       <style>{`
-        :root { --cat-size: 56px; }
-        @media (min-width: 640px) { :root { --cat-size: 64px; } }
+        :root { --cat-size: 64px; }
+        @media (min-width: 640px) { :root { --cat-size: 80px; } }
         @keyframes cat-jump {
           0%, 100% { transform: translateY(0); }
           45%      { transform: translateY(-10px); }
