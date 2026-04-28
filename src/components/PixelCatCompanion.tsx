@@ -758,7 +758,7 @@ export function PixelCatCompanion() {
           z
         </span>
       )}
-      {reaction && reaction !== "walk_to" && (
+      {reaction && reaction !== "walk_to" && reaction !== "tap_meow" && reaction !== "tap_sleep" && reaction !== "tap_spin" && reaction !== "tap_jump" && (
         <span
           style={{
             position: "absolute",
@@ -768,15 +768,13 @@ export function PixelCatCompanion() {
             fontFamily: "monospace",
             fontWeight: 700,
             color:
-              reaction === "jump"
+              reaction === "jump" || reaction === "tap_heart"
                 ? "#e11d48"
-                : reaction === "sad_sleep"
-                  ? "#1a1a1a"
-                  : "#1a1a1a",
+                : "#1a1a1a",
             animation: "cat-z-blink 0.6s steps(2) infinite",
           }}
         >
-          {reaction === "jump"
+          {reaction === "jump" || reaction === "tap_heart"
             ? "♥"
             : reaction === "curious"
               ? "?"
@@ -785,11 +783,39 @@ export function PixelCatCompanion() {
                 : "z"}
         </span>
       )}
+      {bubble && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: "50%",
+            transform: "translate(-50%, -4px)",
+            background: "#ffffff",
+            color: "#1a1a1a",
+            border: "2px solid #1a1a1a",
+            padding: "2px 6px",
+            fontFamily: "monospace",
+            fontSize: 10,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            imageRendering: "pixelated",
+            // Stepped pop-in, no smooth easing.
+            animation: "cat-bubble-pop 0.18s steps(2) both",
+            boxShadow: "2px 2px 0 #1a1a1a",
+          }}
+        >
+          {bubble}
+        </div>
+      )}
       <style>{`
         @keyframes cat-z-blink {
           0% { opacity: 0; }
           50% { opacity: 1; }
           100% { opacity: 0; }
+        }
+        @keyframes cat-bubble-pop {
+          0% { opacity: 0; transform: translate(-50%, 0); }
+          100% { opacity: 1; transform: translate(-50%, -4px); }
         }
       `}</style>
     </div>
