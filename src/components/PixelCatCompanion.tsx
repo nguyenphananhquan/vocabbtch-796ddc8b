@@ -4,7 +4,8 @@ import { CAT_EVENT, type CatActionDetail } from "@/lib/cat-events";
 
 type CatState = "idle" | "walk" | "sleep" | "jump";
 type Dir = -1 | 1;
-type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to";
+type Reaction = null | "jump" | "curious" | "confused" | "sad_sleep" | "walk_to" | "look";
+type EyeMode = "normal" | "sparkle" | "closed";
 
 // ---- Pixel sprite (16x16) ----------------------------------------------
 // 0 transparent, 1 outline (black), 2 fill (white)
