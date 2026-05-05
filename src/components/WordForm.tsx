@@ -54,8 +54,8 @@ export function WordForm({ initial }: Props) {
   const nodeSuggestions = useMemo(() => {
     const q = node.trim().toLowerCase();
     const pool = existingNodes.filter((n) => n.toLowerCase() !== q);
-    if (!q) return pool.slice(0, 8);
-    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 8);
+    const filtered = q ? pool.filter((n) => n.toLowerCase().includes(q)) : pool;
+    return [...filtered].sort((a, b) => a.localeCompare(b));
   }, [node, existingNodes]);
 
   async function onSubmit(e: FormEvent) {
