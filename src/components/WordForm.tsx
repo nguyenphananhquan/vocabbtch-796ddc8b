@@ -54,8 +54,8 @@ export function WordForm({ initial }: Props) {
   const nodeSuggestions = useMemo(() => {
     const q = node.trim().toLowerCase();
     const pool = existingNodes.filter((n) => n.toLowerCase() !== q);
-    if (!q) return pool.slice(0, 8);
-    return pool.filter((n) => n.toLowerCase().includes(q)).slice(0, 8);
+    const filtered = q ? pool.filter((n) => n.toLowerCase().includes(q)) : pool;
+    return [...filtered].sort((a, b) => a.localeCompare(b));
   }, [node, existingNodes]);
 
   async function onSubmit(e: FormEvent) {
@@ -146,7 +146,7 @@ export function WordForm({ initial }: Props) {
               required
             />
             {nodeFocused && nodeSuggestions.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full max-h-56 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+              <div className="absolute z-10 mt-1 w-full max-h-72 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md">
                 {nodeSuggestions.map((n) => (
                   <button
                     type="button"
