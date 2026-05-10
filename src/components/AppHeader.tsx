@@ -21,6 +21,16 @@ export function AppHeader() {
             List
           </Link>
           <Link
+            to="/nodes"
+            className="flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-accent"
+            activeProps={{
+              className: "flex items-center gap-1 rounded-md px-2 py-1.5 bg-accent font-medium",
+            }}
+          >
+            <Network className="h-4 w-4" />
+            <span className="hidden sm:inline">Nodes</span>
+          </Link>
+          <Link
             to="/random"
             className="flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-accent"
             activeProps={{
