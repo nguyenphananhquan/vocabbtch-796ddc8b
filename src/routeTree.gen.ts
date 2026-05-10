@@ -15,6 +15,7 @@ import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WordsNewRouteImport } from './routes/words.new'
 import { Route as WordsIdRouteImport } from './routes/words.$id'
+import { Route as NodesNodeRouteImport } from './routes/nodes.$node'
 import { Route as WordsIdEditRouteImport } from './routes/words_.$id.edit'
 import { Route as ApiPublicVocabIndexRouteImport } from './routes/api.public.vocab.index'
 import { Route as ApiPublicVocabRandomRouteImport } from './routes/api.public.vocab.random'
@@ -50,6 +51,11 @@ const WordsIdRoute = WordsIdRouteImport.update({
   path: '/words/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NodesNodeRoute = NodesNodeRouteImport.update({
+  id: '/$node',
+  path: '/$node',
+  getParentRoute: () => NodesRoute,
+} as any)
 const WordsIdEditRoute = WordsIdEditRouteImport.update({
   id: '/words_/$id/edit',
   path: '/words/$id/edit',
@@ -74,8 +80,9 @@ const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRoute
+  '/nodes': typeof NodesRouteWithChildren
   '/random': typeof RandomRoute
+  '/nodes/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
@@ -86,8 +93,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRoute
+  '/nodes': typeof NodesRouteWithChildren
   '/random': typeof RandomRoute
+  '/nodes/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words/$id/edit': typeof WordsIdEditRoute
@@ -99,8 +107,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRoute
+  '/nodes': typeof NodesRouteWithChildren
   '/random': typeof RandomRoute
+  '/nodes/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words_/$id/edit': typeof WordsIdEditRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/nodes'
     | '/random'
+    | '/nodes/$node'
     | '/words/$id'
     | '/words/new'
     | '/words/$id/edit'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/nodes'
     | '/random'
+    | '/nodes/$node'
     | '/words/$id'
     | '/words/new'
     | '/words/$id/edit'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/nodes'
     | '/random'
+    | '/nodes/$node'
     | '/words/$id'
     | '/words/new'
     | '/words_/$id/edit'
@@ -150,7 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiDocsRoute: typeof ApiDocsRoute
-  NodesRoute: typeof NodesRoute
+  NodesRoute: typeof NodesRouteWithChildren
   RandomRoute: typeof RandomRoute
   WordsIdRoute: typeof WordsIdRoute
   WordsNewRoute: typeof WordsNewRoute
@@ -204,6 +216,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WordsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nodes/$node': {
+      id: '/nodes/$node'
+      path: '/$node'
+      fullPath: '/nodes/$node'
+      preLoaderRoute: typeof NodesNodeRouteImport
+      parentRoute: typeof NodesRoute
+    }
     '/words_/$id/edit': {
       id: '/words_/$id/edit'
       path: '/words/$id/edit'
@@ -235,10 +254,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface NodesRouteChildren {
+  NodesNodeRoute: typeof NodesNodeRoute
+}
+
+const NodesRouteChildren: NodesRouteChildren = {
+  NodesNodeRoute: NodesNodeRoute,
+}
+
+const NodesRouteWithChildren = NodesRoute._addFileChildren(NodesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
-  NodesRoute: NodesRoute,
+  NodesRoute: NodesRouteWithChildren,
   RandomRoute: RandomRoute,
   WordsIdRoute: WordsIdRoute,
   WordsNewRoute: WordsNewRoute,
