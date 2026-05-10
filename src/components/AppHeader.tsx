@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Cat, Plus, Shuffle } from "lucide-react";
+import { BookOpen, Cat, Network, Plus, Shuffle } from "lucide-react";
 import { useCatCompanion } from "@/hooks/use-cat-companion";
 
 export function AppHeader() {
