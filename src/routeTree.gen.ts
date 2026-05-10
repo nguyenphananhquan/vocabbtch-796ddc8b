@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RandomRouteImport } from './routes/random'
+import { Route as NodesRouteImport } from './routes/nodes'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WordsNewRouteImport } from './routes/words.new'
@@ -22,6 +23,11 @@ import { Route as ApiPublicVocabIdRouteImport } from './routes/api.public.vocab.
 const RandomRoute = RandomRouteImport.update({
   id: '/random',
   path: '/random',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NodesRoute = NodesRouteImport.update({
+  id: '/nodes',
+  path: '/nodes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDocsRoute = ApiDocsRouteImport.update({
@@ -68,6 +74,7 @@ const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api-docs'
+    | '/nodes'
     | '/random'
     | '/words/$id'
     | '/words/new'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api-docs'
+    | '/nodes'
     | '/random'
     | '/words/$id'
     | '/words/new'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api-docs'
+    | '/nodes'
     | '/random'
     | '/words/$id'
     | '/words/new'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiDocsRoute: typeof ApiDocsRoute
+  NodesRoute: typeof NodesRoute
   RandomRoute: typeof RandomRoute
   WordsIdRoute: typeof WordsIdRoute
   WordsNewRoute: typeof WordsNewRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/random'
       fullPath: '/random'
       preLoaderRoute: typeof RandomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nodes': {
+      id: '/nodes'
+      path: '/nodes'
+      fullPath: '/nodes'
+      preLoaderRoute: typeof NodesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-docs': {
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
+  NodesRoute: NodesRoute,
   RandomRoute: RandomRoute,
   WordsIdRoute: WordsIdRoute,
   WordsNewRoute: WordsNewRoute,
