@@ -17,6 +17,7 @@ export const Route = createFileRoute("/nodes")({
 function NodesPage() {
   const [words, setWords] = useState<Word[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sort, setSort] = useState<"name" | "count">("name");
 
   useEffect(() => {
     (async () => {
@@ -36,10 +37,17 @@ function NodesPage() {
       if (!n) continue;
       map.set(n, (map.get(n) ?? 0) + 1);
     }
-    return Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [words]);
+    const arr = Array.from(map.entries()).map(([name, count]) => ({
+      name,
+      count,
+    }));
+    if (sort === "count") {
+      arr.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    } else {
+      arr.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return arr;
+  }, [words, sort]);
 
   return (
     <div className="min-h-screen bg-background">
