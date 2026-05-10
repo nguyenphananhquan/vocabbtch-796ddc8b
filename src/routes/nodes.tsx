@@ -17,6 +17,7 @@ export const Route = createFileRoute("/nodes")({
 function NodesPage() {
   const [words, setWords] = useState<Word[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sort, setSort] = useState<"name" | "count">("name");
 
   useEffect(() => {
     (async () => {
@@ -36,16 +37,41 @@ function NodesPage() {
       if (!n) continue;
       map.set(n, (map.get(n) ?? 0) + 1);
     }
-    return Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [words]);
+    const arr = Array.from(map.entries()).map(([name, count]) => ({
+      name,
+      count,
+    }));
+    if (sort === "count") {
+      arr.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    } else {
+      arr.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return arr;
+  }, [words, sort]);
 
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container mx-auto px-4 py-6">
-        <h1 className="mb-4 text-xl font-semibold">Nodes</h1>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold">Nodes</h1>
+          <div className="flex gap-1 rounded-md border bg-card p-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setSort("name")}
+              className={`rounded px-2 py-1 ${sort === "name" ? "bg-secondary text-secondary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              A–Z
+            </button>
+            <button
+              type="button"
+              onClick={() => setSort("count")}
+              className={`rounded px-2 py-1 ${sort === "count" ? "bg-secondary text-secondary-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Count
+            </button>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

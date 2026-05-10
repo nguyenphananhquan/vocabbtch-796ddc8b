@@ -15,7 +15,7 @@ import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WordsNewRouteImport } from './routes/words.new'
 import { Route as WordsIdRouteImport } from './routes/words.$id'
-import { Route as NodesNodeRouteImport } from './routes/nodes.$node'
+import { Route as NodesNodeRouteImport } from './routes/nodes_.$node'
 import { Route as WordsIdEditRouteImport } from './routes/words_.$id.edit'
 import { Route as ApiPublicVocabIndexRouteImport } from './routes/api.public.vocab.index'
 import { Route as ApiPublicVocabRandomRouteImport } from './routes/api.public.vocab.random'
@@ -52,9 +52,9 @@ const WordsIdRoute = WordsIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const NodesNodeRoute = NodesNodeRouteImport.update({
-  id: '/$node',
-  path: '/$node',
-  getParentRoute: () => NodesRoute,
+  id: '/nodes_/$node',
+  path: '/nodes/$node',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const WordsIdEditRoute = WordsIdEditRouteImport.update({
   id: '/words_/$id/edit',
@@ -80,7 +80,7 @@ const ApiPublicVocabIdRoute = ApiPublicVocabIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRouteWithChildren
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
   '/nodes/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
@@ -93,7 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRouteWithChildren
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
   '/nodes/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
@@ -107,9 +107,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
-  '/nodes': typeof NodesRouteWithChildren
+  '/nodes': typeof NodesRoute
   '/random': typeof RandomRoute
-  '/nodes/$node': typeof NodesNodeRoute
+  '/nodes_/$node': typeof NodesNodeRoute
   '/words/$id': typeof WordsIdRoute
   '/words/new': typeof WordsNewRoute
   '/words_/$id/edit': typeof WordsIdEditRoute
@@ -150,7 +150,7 @@ export interface FileRouteTypes {
     | '/api-docs'
     | '/nodes'
     | '/random'
-    | '/nodes/$node'
+    | '/nodes_/$node'
     | '/words/$id'
     | '/words/new'
     | '/words_/$id/edit'
@@ -162,8 +162,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiDocsRoute: typeof ApiDocsRoute
-  NodesRoute: typeof NodesRouteWithChildren
+  NodesRoute: typeof NodesRoute
   RandomRoute: typeof RandomRoute
+  NodesNodeRoute: typeof NodesNodeRoute
   WordsIdRoute: typeof WordsIdRoute
   WordsNewRoute: typeof WordsNewRoute
   WordsIdEditRoute: typeof WordsIdEditRoute
@@ -216,12 +217,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WordsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nodes/$node': {
-      id: '/nodes/$node'
-      path: '/$node'
+    '/nodes_/$node': {
+      id: '/nodes_/$node'
+      path: '/nodes/$node'
       fullPath: '/nodes/$node'
       preLoaderRoute: typeof NodesNodeRouteImport
-      parentRoute: typeof NodesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/words_/$id/edit': {
       id: '/words_/$id/edit'
@@ -254,21 +255,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface NodesRouteChildren {
-  NodesNodeRoute: typeof NodesNodeRoute
-}
-
-const NodesRouteChildren: NodesRouteChildren = {
-  NodesNodeRoute: NodesNodeRoute,
-}
-
-const NodesRouteWithChildren = NodesRoute._addFileChildren(NodesRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiDocsRoute: ApiDocsRoute,
-  NodesRoute: NodesRouteWithChildren,
+  NodesRoute: NodesRoute,
   RandomRoute: RandomRoute,
+  NodesNodeRoute: NodesNodeRoute,
   WordsIdRoute: WordsIdRoute,
   WordsNewRoute: WordsNewRoute,
   WordsIdEditRoute: WordsIdEditRoute,

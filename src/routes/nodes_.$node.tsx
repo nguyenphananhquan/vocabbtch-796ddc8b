@@ -8,7 +8,7 @@ import { triggerCat } from "@/lib/cat-events";
 import { toast } from "sonner";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/nodes/$node")({
+export const Route = createFileRoute("/nodes_/$node")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.node} — Nodes` },

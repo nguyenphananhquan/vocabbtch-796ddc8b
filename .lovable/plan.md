@@ -1,30 +1,25 @@
-## What's actually happening
+## Issues
 
-Hitting `/api/public/vocab` in the browser address bar can never return data — browsers can't attach an `Authorization: Bearer` header to a URL-bar navigation. The `401 Unauthorized` you see is the **correct, secure response**. The API is working.
+**1. Node detail page renders nothing**
 
-To verify the key works, you need a request that includes the header. There are two common ways:
-1. Use `curl` / Postman from your machine.
-2. Use the in-app docs page to send a test request (we'll add this).
+In TanStack Router's flat file routing, `nodes.$node.tsx` is treated as a child of `nodes.tsx`. The parent (`nodes.tsx`) doesn't render `<Outlet />`, so when navigating to `/nodes/:node` only the parent's content tries to render and the child is silently dropped.
 
-## Proposed changes
+Fix: rename `src/routes/nodes.$node.tsx` → `src/routes/nodes_.$node.tsx`. The trailing underscore opts the route out of nesting under `nodes`, so it becomes a standalone page (same pattern already used by `words_.$id.edit.tsx`). No other code changes required — the link `to="/nodes/$node"` keeps working.
 
-### 1. Add a "Try it" tester to the API docs page (`src/routes/api-docs.tsx`)
-- Input field for the API key (stored in component state only, never persisted).
-- A button that calls `GET /api/public/vocab/` with the bearer header and shows the JSON response (or error) below.
-- Helpful hint text: "Browser address-bar requests can't send headers — that's why opening `/api/public/vocab` directly returns Unauthorized."
+**2. Sorting on Nodes view**
 
-### 2. Tighten the docs copy
-- Add a callout at the top explaining that visiting the endpoint in a browser tab will always return 401.
-- Note the **trailing slash** on `/api/public/vocab/` (TanStack file routes are exact).
+Add a small sort toggle at the top of `src/routes/nodes.tsx` with two options:
+- Alphabetical (A→Z) — current default
+- Word count (high → low)
 
-### 3. (Optional) Allow `?key=` query param as an additional auth method
-Right now only `Authorization: Bearer` is accepted. If you want the URL bar to "just work" for quick checks, I can extend `checkAuth()` in `src/server/vocab-api.ts` to also accept `?key=YOUR_KEY`. This is **less secure** (keys end up in browser history and server logs) so I'd only recommend it for personal/dev use.
+Implementation:
+- Local `sort` state (`"name" | "count"`), default `"name"`.
+- Two small buttons (or a `ToggleGroup`) above the list, styled with existing tokens.
+- Sort the memoized `nodes` array based on the current state.
 
-I'll skip this unless you say yes.
+No other behavior or layout changes.
 
-## Files touched
-- `src/routes/api-docs.tsx` — add tester UI + callout
-- `src/server/vocab-api.ts` — only if you opt into the `?key=` query param
+## Files
 
-## Verification
-After changes, on the docs page paste your `VOCAB_API_KEY`, click "Test request", and confirm a `200` with your words list.
+- Rename: `src/routes/nodes.$node.tsx` → `src/routes/nodes_.$node.tsx` (content unchanged)
+- Edit: `src/routes/nodes.tsx` (add sort state + toggle UI + conditional sort)
