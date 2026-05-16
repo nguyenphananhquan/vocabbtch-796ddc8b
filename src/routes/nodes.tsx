@@ -73,6 +73,14 @@ function NodesPage() {
           </div>
         </div>
 
+        {words && (
+          <div className="mb-4 flex gap-4 text-sm text-muted-foreground">
+            <span>{words.length} words</span>
+            <span>·</span>
+            <span>{nodes.length} nodes</span>
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
